@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <meta name="format-detection" content="telephone=no">
+    <title>3.2 Хемиски симболи и формули - mauthor.com</title>
+
+    <script type="text/javascript" language="javascript" src="javascript/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" language="javascript" src="icplayer/icplayer.nocache.js"></script>
+    <script type="text/javascript" src="javascript/semi-responsive-layout-chooser.js"></script>
+    <script type="text/javascript" src="javascript/screen.js"></script>
+
+    <script type="text/x-mathjax-config">
+		MathJax.Hub.Config({
+			TeX: {imageFont: null, extensions: ["mhchem.js", "AMSsymbols.js", "AMSmath.js"]},
+			extensions: ["tex2jax.js", "mml2jax.js", "forminput.js"],
+			skipStartupTypeset: true,
+			showProcessingMessages: false,
+			jax: ["input/TeX", "input/MathML", "output/HTML-CSS"],
+			playerObject: "player"
+  		});
+    </script>
+    <script type="text/javascript" src="javascript/MathJax/MathJax.js"></script>
+    <script type="text/javascript" src="javascript/tincan/tincan-min.js"></script>
+    <script type="text/javascript" src="javascript/tincan/xapi.js"></script>
+    <style>
+        .no-margin {
+            margin: 0;
+            padding: 0;
+        }
+
+        .pull-left {
+            float: left;
+        }
+
+        .clear {
+            clear: both;
+        }
+    </style>
+
+    <script language="javascript">
+        var player;
+        var start;
+        var xapi;
+        var semiResponsiveLayoutChooser;
+        var userAgent = window.navigator.userAgent;
+        var viewPort = document.querySelector("meta[name=viewport]");
+        var isAttemptSaved = false;
+        var passingScore = null;
+
+        var tincanCfg = {
+            entry: "ab-initio",
+            lessonIRI: "6186207056363520",
+            lessonTitle: "3.2 Хемиски симболи и формули",
+            courseIRI: "https://www.mauthor.com/xapi/activity/6186207056363520",
+            lessonDescription: "",
+             url: window.location.href, 
+            actor: {
+                account: {
+                    homePage: "http://example.lms.com/",
+                    name: "Anonymous"
+                }
+            }
+        };
+
+        function fromUtf8ToBase64(text) {
+            var parsedText = CryptoJS.enc.Utf8.parse(text);
+            return CryptoJS.enc.Base64.stringify(parsedText);
+        }
+
+        function fromBase64ToUtf16(base64EncodedString) {
+            var decodedBase64Text = CryptoJS.enc.Base64.parse(base64EncodedString);
+            return CryptoJS.enc.Utf8.stringify(decodedBase64Text);
+        }
+
+        function getOpener() {
+            var parent = null;
+            if (window.parent != null && window.parent.postMessage != null) {
+                parent = window.parent;
+            }
+            if (window.opener != null && window.opener.postMessage != null) {
+                parent = window.opener;
+            }
+            return parent;
+        }
+
+        function postResizeMessage(width, height) {
+            var parent = getOpener();
+
+            if (parent != null) {
+                var message = "RESIZE:" + width + ";" + height;
+                parent.postMessage(message, '*');
+            }
+        }
+
+        function postPageLoadedMessage() {
+            var parent = getOpener();
+
+            if (parent != null) {
+                var message = "PAGE_LOADED";
+                parent.postMessage(message, '*');
+            }
+        }
+
+
+        function chooseLayout(layoutChooser, screenConfiguration) {
+            var isMobile = screenConfiguration.orientation !== window.mAuthor.ScreenUtils.ORIENTATION_TYPES.NOT_MOBILE;
+            var isVertical = screenConfiguration.orientation === window.mAuthor.ScreenUtils.ORIENTATION_TYPES.PORTRAIT;
+            var isHorizontal = screenConfiguration.orientation === window.mAuthor.ScreenUtils.ORIENTATION_TYPES.LANDSCAPE;
+
+            return layoutChooser.chooseLayout(screenConfiguration.width, isMobile, isVertical, isHorizontal);
+        }
+
+        function setViewPortSizesAfterScreenChanges() {
+            var $icPlayer = $('#_icplayer');
+            var width = parseInt($icPlayer.css('width'), 10);
+            viewPort.setAttribute('content', 'width=' + width + ',maximum-scale=1');
+        }
+
+        function onResizeHandler() {
+            var screenSizes = window.mAuthor.ScreenUtils.getScreenSizesDependingOnOrientation(userAgent);
+            var layoutID = chooseLayout(semiResponsiveLayoutChooser, screenSizes);
+            var changed = player.changeLayout(layoutID);
+            if (changed) {
+                setViewPortSizesAfterScreenChanges();
+            }
+        }
+
+        function receiveMessage(event) {
+            var WINDOW_WIDTH_EVENT = "WINDOW_WIDTH:";
+
+            if (!event.data) {
+                return;
+            }
+
+            if (event.data.indexOf(WINDOW_WIDTH_EVENT) === 0) {
+                if (semiResponsiveLayoutChooser) {
+                    var screenConfiguration = JSON.parse(event.data.substring(WINDOW_WIDTH_EVENT.length, event.data.length));
+                    var layoutID = chooseLayout(semiResponsiveLayoutChooser, screenConfiguration);
+                    var changed = player.changeLayout(layoutID);
+                }
+            }
+        }
+
+        function iframeResizeRequest() {
+            if (window.parent != null && window.parent.postMessage != null) {
+                var $icPlayer = $('#_icplayer');
+                var width = parseInt($icPlayer.css('width'), 10);
+                var height = parseInt($icPlayer.css('height'), 10);
+                setViewPortSizesAfterScreenChanges();
+                postResizeMessage(width, height);
+            }
+        }
+
+        function checkAllReportablePagesVisited(presentation) {
+            var page = null;
+            var pagesCount = presentation.getPageCount();
+
+            for (var i = 0; i < pagesCount; i++) {
+                page = presentation.getPage(i);
+
+                if (page.isReportable() && !page.isVisited()) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+
+        function icOnAppLoaded() {
+            player = icCreatePlayer('_icplayer');
+            try {
+                cfg = xAPI.configFromParams(tincanCfg);
+                xapi = new xAPI(cfg);
+            } catch (err) {
+                xapi = xAPI.getMockObject(err);
+                console.error('xAPI initialization returned the following error: ' + err +
+                    'Please refer to /doc/page/Content-output for more details');
+            }
+            var location = "0";
+            if (cfg.entry === "resume") {
+                xapi.resumeAttempt();
+                try {
+                    var result = xapi.getAttemptState();
+                    var state = result.state.contents;
+                    player.setState(fromBase64ToUtf16(state.state_string));
+                    location = state.location;
+                } catch (err) {
+                    console.log("State not available for this attempt:" + err);
+                }
+            } else {
+                xapi.initializeAttempt();
+            }
+            player.load('pages/main.xml', parseInt(location));
+
+            var firstPageLoaded = false;
+            var previousPageNumber = 1; // it isn't 0 based, as page_number in paginated results begins from 1!
+            player.onPageLoaded(function onPageLoadedHandler() {
+                
+                    isAttemptSaved = false;
+                
+                start = start || new Date().getTime();
+
+                if (!firstPageLoaded) {
+                    semiResponsiveLayoutChooser = new window.semiResponsive.LayoutChooser(player.getSemiResponsiveLayouts());
+                    passingScore = parseInt(player.getPlayerServices().getContentMetadataValue('passingScore'), 10);
+                    if (isNaN(passingScore)) {
+                        passingScore = 0;
+                    }
+
+                    var screenSizes = window.mAuthor.ScreenUtils.getScreenSizesDependingOnOrientation(userAgent);
+
+                    var layoutID = chooseLayout(semiResponsiveLayoutChooser, screenSizes);
+                    var changed = player.changeLayout(layoutID);
+
+                    firstPageLoaded = true;
+                    window.addEventListener("resize", onResizeHandler, false)
+                } else {
+                    // do this only if this isn't first page
+                    getAndSendXAPIPageScore(previousPageNumber);
+                    previousPageNumber = player.getPlayerServices().getCurrentPageIndex() + 1;
+                }
+                iframeResizeRequest();
+                postPageLoadedMessage();
+
+                var currentScore = 0;
+                var debounceTimeoutID = null;
+                var utils = new PlayerUtils(player);
+
+                // event bus handlers are cleared on each page change, so they should be set on each page load
+                var valueChangedHandler = {
+                    onEventReceived: function() {
+                        var currentPageIndex = player.getPlayerServices().getCurrentPageIndex() + 1;
+                        var presentation = utils.getPresentation();
+                        var presentationScore = utils.getPresentationScore(presentation);
+                        var newScoreValue = presentationScore.scaledScore;
+                        var paginatedResult = utils.getPresentationScore(presentation).paginatedResult;
+                        var pageID = presentation.getPage(currentPageIndex - 1).getId(); // this player method operates on 0-based indexes of pages
+
+                        function emptyCallback() { console.debug("Page score saved!"); }
+
+                        // if score changed send now
+                        if (newScoreValue !== currentScore) {
+                            findAndSendPageScore(paginatedResult, currentPageIndex, pageID, emptyCallback);
+                            window.clearTimeout(debounceTimeoutID);
+                            debounceTimeoutID = null;
+                            currentScore = newScoreValue;
+                        } else {
+                            // update 30 seconds after event came
+                            if (debounceTimeoutID === null) {
+                                debounceTimeoutID = window.setTimeout(function () {
+                                    findAndSendPageScore(paginatedResult, currentPageIndex, pageID, emptyCallback);
+                                    debounceTimeoutID = null;
+                                }, 30000);
+                            }
+                        }
+                    }
+                };
+                var playerEventBus = player.getPlayerServices().getEventBus();
+                playerEventBus.addEventListener('ValueChanged', valueChangedHandler);
+
+                $("#scrollableBody").css({
+                    "overflow": "",
+                    "height": ""
+                });
+
+                (function () {
+                    var scrollDetectorInterval = null;
+                    var retries = 0;
+
+                    function scrollAddIfBodyBiggerThanWindow() {
+                        var $window = $(window);
+                        var $icplayerDiv = $("#_icplayer");
+                        var $scrollableContent = $("#scrollableBody");
+
+                        var windowHeight = $window.height();
+                        var windowWidth = $window.width();
+
+                        var bodyHeight = $icplayerDiv.height();
+                        var bodyWidth = $icplayerDiv.width();
+
+                        if (windowHeight < bodyHeight || windowWidth < bodyWidth) {
+                            $scrollableContent.css("overflow", "auto");
+                            $scrollableContent.height(windowHeight);
+                        } else if (windowHeight >= bodyHeight && windowWidth >= bodyWidth) {
+                            $scrollableContent.css("height", "");
+                            $scrollableContent.css("overflow", "");
+                        } else if (windowHeight >= bodyHeight) {
+                            $scrollableContent.css("height", "");
+                        }
+
+                        retries++;
+                        if (retries > 5) {
+                            window.clearInterval(scrollDetectorInterval);
+                        }
+                    }
+
+                    $(document).ready(function () {
+                        if (scrollDetectorInterval == null) {
+                            scrollDetectorInterval = setInterval(scrollAddIfBodyBiggerThanWindow, 1000);
+                        }
+                    });
+                })();
+            });
+
+            player.onOutstretchHeight(function () {
+                iframeResizeRequest();
+            });
+
+            player.onPageScrollTo(function (top) {
+                var parent = getOpener();
+                if (parent) {
+                    parent.postMessage('SCROLLTOP:' + top, "*");
+                }
+            });
+
+
+            window.addEventListener("message", receiveMessage, false);
+        }
+
+        function registerEventListeners() {
+            // event pagehide doesn't work properly in Chrome browser when the document is in iframe
+            if (window.frameElement !== null && navigator.userAgent.indexOf("Chrome") > -1) {
+                window.addEventListener("beforeunload", doUnload, false);
+            } else if ("onpagehide" in window) {
+                window.addEventListener("pagehide", doUnload, false);
+                window.addEventListener("beforeunload", doUnload, false);
+            } else {
+                window.addEventListener("beforeunload", doUnload, false);
+            }
+        }
+
+        function doStart() {
+            registerEventListeners();
+        }
+
+        /**
+         * Gets correct pageResult from player
+         * @method getAndSendXAPIPageScore
+         * @param pageNumber {Number} - Page number, indexed from 1
+         */
+        function getAndSendXAPIPageScore(pageNumber) {
+            var utils = new PlayerUtils(player);
+            var presentation = utils.getPresentation();
+            var paginatedResults = utils.getPresentationScore(presentation).paginatedResult;
+            var pageID = presentation.getPage(pageNumber - 1).getId(); // this player method operates on 0-based indexes of pages
+
+            var callback = undefined;
+
+            findAndSendPageScore(paginatedResults, pageNumber, pageID, callback);
+        }
+
+        function findAndSendPageScore(paginatedResults, pageNumber, pageID, callback) {
+            var pageResult = getPaginatedPageResult(paginatedResults, pageNumber);
+            sendXAPIPageScore(pageResult, pageID, callback);
+        }
+
+        function sendXAPIPageScore(pageResult, pageID, callback) {
+            /**
+            *  @method sendXAPIPageScore
+            *  @param {Object} pageResult Score object
+            *      @param {Number} pageResult.absolute_score
+            *      @param {Number} pageResult.checks_count
+            *      @param {Number} pageResult.errors_count
+            *      @param {Number} pageResult.max_score
+            *      @param {Number} pageResult.mistake_count
+            *      @param {Number} pageResult.page_name
+            *      @param {Number} pageResult.page_number
+            *      @param {Number} pageResult.score
+            *      @param {Number} pageResult.time
+            *  @param {number} pageID
+            *  @param {function | undefined} callback If passed then it will ba async request and will be called after sending the result
+            */
+            var scoreDefined = pageResult && pageID;
+            if (scoreDefined) {
+                var userHadInteraction = pageResult.errors_count > 0 || pageResult.score > 0 || pageResult.mistake_count > 0;
+                if (userHadInteraction) {
+                    xapi.sendPageResult(pageResult, pageID, callback);
+                } else {
+                    console.debug("No interaction with page: " + pageID);
+                }
+            } else {
+                console.debug("Page result or pageID was falsy, page score wasn't sent.")
+            }
+        }
+
+        /**
+         * Saves state, score and location of SCORM package on page leave.
+         */
+        function doUnload(ev) {
+            if (!doUnload.completedSend) { //prevent from sending this  statement twice
+               sendLessonResult();
+
+                if (!isAttemptSaved) {
+                    ev.preventDefault();
+                    ev.returnValue = "";
+                }
+            }
+        }
+
+        function sendLessonResult() {
+            var end = new Date().getTime();
+
+            // This ensures that Player knows to update score before leaving page, event for score type FIRST.
+            if (player.hasOwnProperty('forceScoreUpdate')) {
+                player.forceScoreUpdate();
+            }
+
+            var ps = player.getPlayerServices();
+            var utils = new PlayerUtils(player);
+            var presentation = utils.getPresentation();
+            var score = utils.getPresentationScore(presentation);
+            var _rawscore = score.scaledScore * 100;
+            var rawscore = Math.round(_rawscore);
+
+
+            var attemptScore = {
+                max: 100,
+                min: 0,
+                raw: rawscore,
+                scaled: _rawscore / 100,
+                duration: TinCan.Utils.convertMillisecondsToISO8601Duration(end - start)
+            };
+
+            var attemptState = {
+                state_string: fromUtf8ToBase64(player.getState()),
+                location: ps.getCurrentPageIndex()
+            };
+
+            var currentPageIndex = player.getPlayerServices().getCurrentPageIndex() + 1;
+            var pageID = presentation.getPage(currentPageIndex - 1).getId();
+            var pageResult = getPaginatedPageResult(score.paginatedResult, currentPageIndex);
+            var allPagesVisited = checkAllReportablePagesVisited(presentation);
+            var passed = passingScore <= rawscore;
+            sendXAPIPageScore(pageResult, pageID);
+
+            xapi.completeAttempt(attemptScore, attemptState, allPagesVisited, passed, sendingCompleteAttemptFinished);
+            doUnload.completedSend = true;
+        }
+
+        function sendingCompleteAttemptFinished(err, xhr) {
+            isAttemptSaved = true;
+            
+
+        }
+
+        function getPaginatedPageResult(paginatedResults, pageNumber) {
+            // this will return undefined if filter won't find page with the number (for example, when it has "Reportable" set to false)
+            return paginatedResults.filter(function (pageResult) {
+                return pageResult.page_number === pageNumber;
+            })[0]
+        }
+    </script>
+</head>
+
+<body class="no-margin" onload="doStart();">
+    
+
+    <div id="scrollableBody">
+        <div id="_icplayer" class="no-margin pull-left"></div>
+        <div class="clear"></div>
+    </div>
+</body>
+
+
+
+
+</html>

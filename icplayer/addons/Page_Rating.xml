@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><addon xmlns="http://icplayer.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Page_Rating" xsi:schemaLocation="http://icplayer.com ../../tools/addon.xsd">
+	<model>
+		<property name="Title Text" nameLabel="Page_Rating_property_title_text" type="string"/>
+		<property name="Comment Text" nameLabel="Page_Rating_property_comment_text" type="string"/>
+		<property name="Rates" nameLabel="Page_Rating_property_rates" type="list">
+            <property name="Deselected" nameLabel="Page_Rating_property_deselected" type="image"/>
+		    <property name="Selected" nameLabel="Page_Rating_property_selected" type="image"/>
+		</property>
+        <property isLocalized="true" name="Close button visible" nameLabel="Page_Rating_property_close_button_visible" type="boolean"/>
+	</model>
+<css>.page-rating-wrapper {
+	border-style: solid;
+	border-color: black;
+    background-color: #ffffff;
+	height: 100%;
+	width: 100%;
+}
+
+.page-rating-comment &gt; [data-name="textarea"] {
+    width: 65%;
+	border: 2px solid #bfbab5;
+	border-radius: 10px;
+    padding: 3px;
+	height: 60px;
+	overflow: hidden;
+    resize: none;
+    float: left;
+    margin-left: 10px;
+    margin-bottom: 10px;
+}
+
+.page-rating-comment &gt; [data-name="textarea"]:focus {
+	border-color:#333; 
+}
+
+.page-rating-comment{
+    display: block;
+	position: absolute;
+	text-align: center;
+	padding-top: 10px;
+	bottom: 0;
+	background-color: #f2f1d5;
+	width: 100%;
+}
+
+.page-rating-comment &gt; p {
+    padding-bottom: 3px;
+    position: relative;
+    text-align: left;
+    margin-left: 15px;
+}
+
+.page-rating-rates &gt; img {
+	height: 80px;
+	width: 80px;
+    margin: 2px;
+    border-radius: 5px;
+}
+
+.page-rating-rates {
+	text-align: center;
+	bottom: 10px;
+    padding: 3px;
+}
+
+.page-rating-title {
+	background-color: #e1f2d5;
+    padding-bottom: 3px;
+    text-align: center;
+}
+
+.page-rating-comment &gt; .page-rating-submit-button {
+    display: block;
+    padding: 10px 15px;
+    float: right;
+    background: #4479BA;
+    color: #FFF;
+    margin-top: 28px;
+    margin-right: 10px;
+    margin-left: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border: solid 1px #20538D;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px
+}
+
+.page-rating-comment &gt; .page-rating-submit-button:disabled {
+    background-color: grey;
+}
+
+.page-rating-comment &gt; button:hover{
+    background: #356094;
+    border: solid 1px #2A4E77;
+    text-decoration: none;
+}
+
+.page-rating-wrapper &gt; .page-rating-close-button {
+    float: right;
+    background: #4479BA;
+    color: #FFF;
+    margin-top: 2px;
+    margin-right: 2px;
+    border-radius: 4px;
+    border: solid 1px #20538D;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px
+}
+</css><view>&lt;div class="page-rating-wrapper"&gt;
+    &lt;div class="page-rating-title"&gt;&lt;/div&gt;
+    &lt;div class="page-rating-rates"&gt;&lt;/div&gt;
+    &lt;div class="page-rating-comment"&gt;&lt;/div&gt;
+&lt;/div&gt;
+</view><preview>&lt;div class="page-rating-wrapper"&gt;
+    &lt;div class="page-rating-title"&gt;&lt;/div&gt;
+    &lt;div class="page-rating-rates"&gt;&lt;/div&gt;
+    &lt;div class="page-rating-comment"&gt;&lt;/div&gt;
+&lt;/div&gt;
+</preview><presenter>function AddonPage_Rating_create() {
+    var presenter = function () { };
+    var eventBus;
+    var selected_img = [],
+    	deselected_img = [];
+    
+    presenter.currentRate = 0;
+    presenter.playerController = null;
+	presenter.isElementSelected = null;
+	presenter.isModelError = false;
+    presenter.addonID = null;
+    presenter.originalDisplay = "";
+    presenter.setPlayerController = function(controller) {
+        presenter.playerController = controller;
+    };
+	
+    presenter.ERROR_CODES = {
+        'E_01': "You have to add at least 2 rates.",
+        'E_02': "You did not add Selected or/and Deselected image for at least one rate."
+    };
+    
+    function returnErrorObject(errorCode) {
+        return { isError: true, errorCode: errorCode };
+    }
+
+    presenter.sanitizeModel = function (model)  {
+        if(model.Rates.length &lt;2){
+            return returnErrorObject('E_01');
+        }
+
+    	for (var model_img=0; model_img &lt; model.Rates.length; model_img++){
+    		selected_img[model_img] = model.Rates[model_img].Selected;
+			deselected_img[model_img] = model.Rates[model_img].Deselected;
+    	}
+        if(model.Rates.length &gt; 1) {
+            for (var img = 0; img &lt; model.Rates.length; img++) {
+                if (!model.Rates[img].Selected || !model.Rates[img].Deselected) {
+                    return returnErrorObject('E_02');
+                }
+            }
+        }
+        var isVisible = ModelValidationUtils.validateBoolean(model['Is Visible']);
+        var buttonCloseVisible = ModelValidationUtils.validateBoolean(model['Close button visible']);
+
+        return {
+            isError: false,
+            rates: {
+                selected: selected_img,
+                deselected: deselected_img
+            },
+            length: model.Rates.length,
+            title: model['Title Text'],
+            comment: model['Comment Text'],
+            isVisible: isVisible,
+            closeButtonVisible: buttonCloseVisible
+        }
+    };
+
+    function submitEventHandler (e) {
+        e.stopPropagation();
+        presenter.hide();
+    }
+
+    presenter.createRatingEventData = function (data) {
+        return {
+            source : presenter.addonID,
+            item : data.index,
+            value : data.selected ? "1" : "0"
+        };
+    };
+    
+    function clickEventHandler (e) {
+        e.stopPropagation();
+
+    	var $image = $(this),
+            index = parseInt($image.data('index'), 10),
+    		eventData = presenter.createRatingEventData({'index' : index+1, 'selected' : $image.attr("name") === "deselected"});
+    	
+    	if($image.attr("name") === "deselected") {
+    		presenter.currentRate = index+1;
+    	} else {
+    		presenter.currentRate = 0;
+    	}
+    	eventBus.sendEvent('ValueChanged', eventData);
+
+    	if( $image.attr("name") === "deselected" ) {
+        	if(presenter.isElementSelected !== null) {
+                var $selectedImage = presenter.$view.find('img[data-index="'+ presenter.isElementSelected +'"]');
+
+                $selectedImage.attr({
+                    'src': deselected_img[presenter.isElementSelected],
+                    'name': "deselected"
+                });
+            }
+              presenter.setSelectedImage(index);
+        } else {
+        	if(presenter.isElementSelected === index) {
+                $image.attr({
+                    "src": deselected_img[index],
+                    "name": "deselected"
+                });
+
+                presenter.isElementSelected = null;
+                presenter.$view.find('.page-rating-submit-button').attr('disabled','disabled');
+        	}
+        }
+        
+    }
+    
+    function updateTitle (view, title) {
+    	if(title){
+        	$(view).find('.page-rating-title').html(title);
+        }
+    }
+    
+    function updateComment(view, comment, isPreview){
+        $(view).find('.page-rating-comment').prepend('&lt;p class="CommentText"&gt;&lt;/p&gt;');
+        $(view).find('.CommentText').html(comment);
+        $(view).find('.page-rating-comment').append('&lt;textarea&gt;&lt;/textarea&gt;');
+        $(view).find('textarea').attr('data-name', 'textarea');
+        $(view).find('.page-rating-comment').append('&lt;button type="button" class="page-rating-submit-button"&gt;Submit&lt;/button&gt;');
+        $(view).find('.page-rating-submit-button').attr('disabled','disabled');
+
+        if(!isPreview) {
+            $(view).find(".page-rating-submit-button").live("click", submitEventHandler);
+        }
+    }
+    
+    function updateRates(view, rates, length,isPreview){
+        if(rates){
+            for (var i=0; i&lt;length; i++){
+                var $image = $(document.createElement('img'));
+
+                $image.attr({
+                    'src': deselected_img[i],
+                    'name': "deselected",
+                    'data-index': i
+                });
+
+                $(view).find('.page-rating-rates').append($image);
+            }
+            if(!isPreview){
+                $(view).find("img").live("click", clickEventHandler);
+            }
+        }
+    }
+
+    presenter.updateView = function (isPreview){
+        if(presenter.configuration.closeButtonVisible){
+            presenter.$view.find('.page-rating-wrapper').prepend('&lt;button type="button" class="page-rating-close-button"&gt;Close&lt;/button&gt;');
+            presenter.$view.find(".page-rating-close-button").live("click", submitEventHandler);
+        }
+        updateTitle(presenter.$view, presenter.configuration.title);
+        updateRates(presenter.$view, presenter.configuration.rates, presenter.configuration.length, isPreview);
+        updateComment(presenter.$view, presenter.configuration.comment, isPreview);
+        presenter.$view.css('display',presenter.originalDisplay);
+    };
+
+    presenter.presenterLogic = function (view, model, isPreview) {
+    	presenter.$view = $(view);
+    	presenter.configuration = presenter.sanitizeModel(model);
+
+        if(presenter.configuration.isError){
+            DOMOperationsUtils.showErrorMessage(view, presenter.ERROR_CODES, presenter.configuration.errorCode);
+            return;
+        }
+
+        presenter.originalDisplay = $(view).css('display');
+
+        presenter.setVisibility(presenter.configuration.isVisible || isPreview);
+        presenter.updateView(isPreview);
+    };
+
+    presenter.run = function (view, model) {
+        eventBus = presenter.playerController.getEventBus();
+        presenter.presenterLogic(view, model, false);
+        presenter.addonID = model.ID;
+    };
+    
+    presenter.createPreview = function (view, model) {
+        presenter.presenterLogic(view, model, true);
+    };
+
+    presenter.setSelectedImage = function(index){
+        var $img_RateIndex = presenter.$view.find('img[data-index="'+ index +'"]');
+        $img_RateIndex.attr({
+            'src': selected_img[index],
+            'name': 'selected'
+        });
+
+        presenter.isElementSelected = index;
+
+        if(index == null){
+            presenter.$view.find('.page-rating-submit-button').attr('disabled', 'disabled');
+        }else {
+            presenter.$view.find('.page-rating-submit-button').removeAttr('disabled');
+        }
+    };
+
+    presenter.setCommentValue = function(comment){
+        presenter.$view.find('textarea[data-name="textarea"]').text(comment);
+    };
+
+    presenter.getCommentValue = function(){
+        return presenter.$view.find('textarea[data-name="textarea"]').val();
+    };
+
+    presenter.getState = function () {
+        if (presenter.configuration.isError) {
+            return "";
+        }
+
+    	return JSON.stringify({
+    		commentValue: presenter.getCommentValue(),
+    		isVisible: presenter.configuration.isVisible,
+    		selectedItem: presenter.isElementSelected,
+    		currentRate: presenter.currentRate
+        });
+    };
+
+    presenter.setState = function (state) {
+        if (!state) return;
+
+    	var parsedState = JSON.parse(state),
+            selectedItem = parsedState.selectedItem,
+            currentRate = parsedState.currentRate;
+            
+    		
+        presenter.setCommentValue(parsedState.commentValue);
+        presenter.setSelectedImage(selectedItem);
+        presenter.currentRate = currentRate ? currentRate : "0";
+    	presenter.configuration.isVisible = parsedState.isVisible;
+    	presenter.setVisibility(presenter.configuration.isVisible);
+    };
+    
+    presenter.executeCommand = function (name, params) {
+        var commands = {
+            'show': presenter.show,
+            'hide': presenter.hide,
+            'getRate': presenter.getRate
+        };
+
+        return Commands.dispatch(commands, name, params, presenter);
+    };
+
+    presenter.setVisibility = function (isVisible) {
+        presenter.$view.css('visibility', isVisible ? 'visible' : 'hidden');
+    };
+    
+    presenter.hide = function () {
+        presenter.setVisibility(false);
+        presenter.configuration.isVisible = false;
+    };
+
+    presenter.show = function () {
+        presenter.setVisibility(true);
+        presenter.configuration.isVisible = true;
+    };
+    
+    presenter.getRate = function() {
+		return presenter.currentRate;
+    };
+
+    presenter.reset = function () {
+        presenter.isElementSelected = null;
+        var $img = presenter.$view.find("img[name='selected']"),
+            index = parseInt($img.data('index'), 10);
+
+        $img.attr({
+            "src": deselected_img[index],
+            "name": "deselected"
+        });
+
+        presenter.$view.find('textarea[data-name="textarea"]').val("");
+        presenter.$view.find('.page-rating-submit-button').attr('disabled','disabled');
+    };
+        
+    return presenter;
+}
+</presenter></addon>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><addon id="Logger">
+	<model>
+	</model>
+<css>.logger {
+    text-align: center;
+    font-weight: bold;
+    border: 1px dashed #999999;
+    padding: 0;
+    color: red;
+    overflow: auto;
+    width: 100%;
+    height: 100%;
+}
+
+.log-element {
+    color: black;
+    border-top: 1px dotted black;
+    font-weight: normal;
+}
+
+.logger-clear {
+    float: right;
+}
+</css><view>&lt;div class="logger"&gt;Logger - logs interceptor &lt;a href="" class="logger-clear"&gt;[Clear]&lt;/a&gt;&lt;/div&gt;
+</view><preview>&lt;div class="logger"&gt;Logger - logs interceptor &lt;a href="" class="logger-clear"&gt;[Clear]&lt;/a&gt;&lt;/div&gt;
+</preview><presenter>function AddonLogger_create() {
+    var presenter = function () {};
+
+    presenter.run = function(view, model) {
+        presenter.$view = $(view);
+
+        jQuery.aop.around({ target:console, method:'log'}, function (invocation) {
+            insertLogElement(invocation.arguments[0]);
+            return invocation.proceed();
+        });
+
+        presenter.$view.find('.logger-clear').click(function () {
+            presenter.$view.find('.log-element').remove();
+            return false;
+        });
+    };
+
+    function insertLogElement(logMessage) {
+        var $element = $(document.createElement('div')), logDate = new Date(), formattedDate;
+        formattedDate = logDate.getHours() + ":" + logDate.getMinutes() + ":" + logDate.getSeconds();
+
+        $element.addClass('log-element');
+        $element.text(formattedDate + ": " + logMessage);
+
+        presenter.$view.find('.logger').append($element);
+    }
+
+    return presenter;
+}
+</presenter></addon>

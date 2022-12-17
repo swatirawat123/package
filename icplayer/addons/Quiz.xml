@@ -1,0 +1,1595 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><addon xmlns="http://icplayer.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Quiz" xsi:schemaLocation="http://icplayer.com ../../tools/addon.xsd">
+    <model>
+        <property isDefault="true" name="Questions" nameLabel="Quiz_property_Questions" type="list">
+            <property isLocalized="true" name="Question" nameLabel="Quiz_property_Question" type="html"/>
+            <property name="CorrectAnswer" nameLabel="Quiz_property_CorrectAnswer" type="string"/>
+            <property name="WrongAnswer1" nameLabel="Quiz_property_WrongAnswer1" type="string"/>
+            <property name="WrongAnswer2" nameLabel="Quiz_property_WrongAnswer2" type="string"/>
+            <property name="WrongAnswer3" nameLabel="Quiz_property_WrongAnswer3" type="string"/>
+            <property isLocalized="true" name="Hint" nameLabel="Quiz_property_hint" type="html"/>
+        </property>
+        <property name="TestMode" nameLabel="Quiz_property_TestMode" type="boolean"/>
+        <property name="ShowHelpButtons" nameLabel="Quiz_property_ShowHelpButtons" type="boolean"/>
+        <property name="HelpButtonsMode" nameLabel="Quiz_property_HelpButtonsMode" type="{Both, Hint, 50/50}"/>
+        <property name="NextAfterSelect" nameLabel="Quiz_property_NextAfterSelect" type="boolean"/>
+        <property isLocalized="true" name="NextLabel" nameLabel="Quiz_property_NextLabel" type="string"/>
+        <property isLocalized="true" name="GameLostMessage" nameLabel="Quiz_property_GameLostMessage" type="html"/>
+        <property isLocalized="true" name="GameWonMessage" nameLabel="Quiz_property_GameWonMessage" type="html"/>
+        <property name="ShowSummary" nameLabel="Quiz_property_Summary" type="boolean"/>
+        <property isLocalized="true" name="GameSummaryMessage" nameLabel="Quiz_property_GameSummaryMessage" type="html"/>
+        <property isLocalized="true" name="CorrectGameMessage" nameLabel="Quiz_property_CorrectGameMessage" type="html"/>
+        <property isLocalized="true" name="WrongGameMessage" nameLabel="Quiz_property_WrongGameMessage" type="html"/>
+        <property name="Center vertically" nameLabel="Quiz_property_center_vertically" type="boolean"/>
+        <property name="isActivity" nameLabel="Quiz_property_isActivity" type="boolean"/>
+        <property displayName="Lang attribute" name="langAttribute" nameLabel="Quiz_property_lang_attribute" type="string"/>
+        <property displayName="Speech texts" name="speechTexts" nameLabel="Quiz_property_speech_texts" type="staticlist">
+            <property name="Question" nameLabel="Quiz_speech_text_question" type="staticrow">
+                <property name="Question" nameLabel="Quiz_speech_text_question" type="string"/>
+            </property>
+            <property name="Answer" nameLabel="Quiz_speech_text_answer" type="staticrow">
+                <property name="Answer" nameLabel="Quiz_speech_text_answer" type="string"/>
+            </property>
+            <property name="FiftyFiftyButton" nameLabel="Quiz_speech_text_fifty_fifty_button" type="staticrow">
+                <property name="FiftyFiftyButton" nameLabel="Quiz_speech_text_fifty_fifty_button" type="string"/>
+            </property>
+            <property name="FiftyFiftyButtonWhenNotEnoughAnswers" nameLabel="Quiz_speech_text_fifty_fifty_button_when_not_enough_answers" type="staticrow">
+                <property name="FiftyFiftyButtonWhenNotEnoughAnswers" nameLabel="Quiz_speech_text_fifty_fifty_button_when_not_enough_answers" type="string"/>
+            </property>
+            <property name="HintButton" nameLabel="Quiz_speech_text_hint_button" type="staticrow">
+                <property name="HintButton" nameLabel="Quiz_speech_text_hint_button" type="string"/>
+            </property>
+            <property name="CommentField" nameLabel="Quiz_speech_text_comment_field" type="staticrow">
+                <property name="CommentField" nameLabel="Quiz_speech_text_comment_field" type="string"/>
+            </property>
+            <property name="Hint" nameLabel="Quiz_speech_text_hint" type="staticrow">
+                <property name="Hint" nameLabel="Quiz_speech_text_hint" type="string"/>
+            </property>
+            <property name="Summary" nameLabel="Quiz_speech_text_summary" type="staticrow">
+                <property name="Summary" nameLabel="Quiz_speech_text_summary" type="string"/>
+            </property>
+            <property name="Selected" nameLabel="Quiz_speech_text_selected" type="staticrow">
+                <property name="Selected" nameLabel="Quiz_speech_text_selected" type="string"/>
+            </property>
+            <property name="Correct" nameLabel="Quiz_speech_text_correct" type="staticrow">
+                <property name="Correct" nameLabel="Quiz_speech_text_correct" type="string"/>
+            </property>
+            <property name="Wrong" nameLabel="Quiz_speech_text_wrong" type="staticrow">
+                <property name="Wrong" nameLabel="Quiz_speech_text_wrong" type="string"/>
+            </property>
+            <property name="Inactive" nameLabel="Quiz_speech_text_inactive" type="staticrow">
+                <property name="Inactive" nameLabel="Quiz_speech_text_inactive" type="string"/>
+            </property>
+            <property name="OutOf" nameLabel="Quiz_speech_text_out_of" type="staticrow">
+                <property name="OutOf" nameLabel="Quiz_speech_text_out_of" type="string"/>
+            </property>
+        </property>
+    </model>
+<css>.quiz-error-layer {
+    color: #FF0000;
+    background-color: #FFFFFF;
+    width:100%;
+    height: 100%;
+}
+
+.question-wrapper {
+    width: 100%;
+    height: 100%;
+}
+
+.question-wrapper .question-title {
+    text-align: center;
+    height: 33%;
+}
+
+.question-wrapper .hint-button {
+    background: url("resources/hint.svg") #c0c0c0 no-repeat center;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    float: right;
+}
+
+.question-wrapper .fifty-fifty {
+    background: url("resources/50-50.svg") #c0c0c0 no-repeat center;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    float: right;
+}
+
+.question-wrapper .next-question-button {
+    width: 60px;
+    height: 60px;
+    cursor: default;
+    float: right;
+    opacity: 0.5;
+}
+
+.question-wrapper .next-question-button.active {
+    cursor: pointer;
+    opacity: 1;
+}
+
+.question-wrapper .question-tips {
+    display: inline-block;
+    width: 80%;
+    float: left;
+    height: 34%;
+}
+
+.question-wrapper .question-hint-buttons {
+    display: block;
+    width: 20%;
+    float: right;
+}
+
+.question-wrapper .question-hint-buttons .used {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.question-wrapper .removed {
+    opacity: 0.5;
+}
+
+.question-wrapper .question-tips .question-tip {
+    display: inline-block;
+    cursor: pointer;
+    width: 50%;
+    height: 50%;
+}
+
+.headers-of-answers {
+    display: inline-flex;
+    font-weight: bold;
+}
+
+.answers {
+    width: 85%;
+    display: inline-flex;
+    margin-left: 0.5em;
+}
+
+.center-vertically{
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.question-wrapper .question-tips .question-tip.correct {
+    background-color: greenyellow;
+}
+
+.question-wrapper .question-tips .question-tip.wrong {
+    background-color: #A52A2A;
+}
+
+.question-wrapper .question-tips .question-tip.option {
+    background-color: #fba600;
+}
+
+.question-wrapper .question-hint-wrapper {
+    height: 33%;
+    width: 80%;
+    float: left;
+    display: block;
+}
+
+.question-wrapper .question-hint {
+    background-color: #FFFF00;
+    color: #000000;
+    width: 100%;
+    height: 100%;
+}
+
+.question-wrapper .game-won-message-wrapper {
+    background-color: #00aa00;
+    color: #ffffff;
+    width: 100%;
+    height: 100%;
+}
+.question-wrapper .game-won-message {
+    text-align: center;
+}
+
+.question-wrapper .game-lost-message-wrapper {
+    background-color: #aa0000;
+    color: #ffffff;
+    width: 100%;
+    height: 100%;
+    position: relative;
+
+}
+.question-wrapper .game-lost-message {
+    text-align: center;
+}
+
+.question-wrapper .game-summary-message-wrapper {
+    background-color: #ffffff;
+    color: #ffffff;
+    width: 100%;
+    height: 100%;
+    color: #000000;
+}
+.question-wrapper .game-summary-message {
+    text-align: center;
+}
+.question-wrapper.disabled,
+.question-wrapper.disabled .hint-button,
+.question-wrapper.disabled .fifty-fifty,
+.question-wrapper.disabled .question-tips .question-tip {
+    cursor: not-allowed;
+}
+
+.question-wrapper .question-tips .question-tip.correct-answer {
+    background-color: #99FF55;
+}
+
+.question-wrapper .quiz-progress {
+    width: 60px;
+    float: right;
+    text-align: center;
+}
+</css><view>&lt;div class="question-wrapper"&gt;&lt;/div&gt;
+</view><preview>&lt;div class="question-wrapper"&gt;&lt;/div&gt;
+</preview><presenter>function AddonQuiz_create() {
+    /*
+    *  KNOWN ISSUES:
+    *
+    *  The first time the addon is loaded, mathjax is rendered.
+    *  Each reload content requires mathjax reload.
+    *  When addon is loaded first time you shouldn't manually reload mathjax.
+    *
+    */
+
+    var presenter = function () {
+    };
+
+    var playerController;
+    var eventBus; // Modules communication
+    var state;
+
+    var ERRORS = {
+        'QUESTION_REQUIRED': "At least 1 question is required.",
+        'EMPTY_QUESTION': "At least one question is not specified",
+        'MISSING_CORRECT_ANSWER': "At least one question doesn't have specified correct answer",
+        'MISSING_WRONG_ANSWER': "At least one question doesn't have specified wrong answer",
+        'MISSING_HINT': "At least one question doesn't have specified hint",
+    };
+
+    var CSS_CLASSES = {
+        QUESTION_TITLE: 'question-title',
+        QUESTION_TIP: 'question-tip',
+        FIFTY_FIFTY: 'fifty-fifty',
+        HINT_BUTTON: 'hint-button',
+        NEXT_QUESTION_BUTTON: 'next-question-button',
+        QUESTION_HINT_WRAPPER: 'question-hint-wrapper',
+        QUESTION_HINT: 'question-hint',
+        GAME_WON_MESSAGE: 'game-won-message',
+        GAME_LOST_MESSAGE: 'game-lost-message',
+        ACTIVE: 'active',
+        CORRECT: 'correct',
+        WRONG: 'wrong',
+        REMOVED: 'removed',
+        OPTION: 'option',
+    };
+
+    var DEFAULT_TTS_PHRASES = {
+        Question: 'Question',
+        Answer: 'Answer',
+        FiftyFiftyButton: 'Fifty-Fifty button',
+        FiftyFiftyButtonWhenNotEnoughAnswers: 'Fifty-Fifty button is inactive because there are less than 4 answers',
+        HintButton: 'Hint button',
+        CommentField: 'Comment field',
+        Hint: 'Hint',
+        Summary: 'Summary',
+        Selected: 'Selected',
+        Correct: 'Correct',
+        Wrong: 'Wrong',
+        Inactive: 'Inactive',
+        OutOf: 'Out of',
+    };
+
+    function ConfigurationError(label) {
+        return {
+            name: 'ConfigurationError',
+            message: ERRORS[label] || label
+        }
+    }
+
+    presenter.activeElements = [];
+    presenter.isLoaded = false;
+    presenter.isWCAGOn = false;
+    presenter.keyboardControllerObject = null;
+
+    function setupDefaults() {
+        state = {
+            currentQuestion: 1,
+            answersOrder: false,
+            wasWrong: false,
+            haveWon: false,
+            fiftyFiftyUsed: false,
+            hintUsed: null,
+            selectedAnswer: null,
+            isVisible: true,
+            score: []
+        };
+        // addon's modes
+        presenter.isErrorMode = false;
+        presenter.isShowAnswersActive = false;
+    }
+
+    presenter.createAllOKEventData = function AddonQuiz_createAllOKEventData() {
+        return {
+            'source': presenter.addonID,
+            'item': 'all',
+            'value': '',
+            'score': ''
+        };
+    };
+
+    function validateQuestions(questions, helpButtons, helpButtonsMode) {
+        if (questions.length &lt; 1) {
+            throw ConfigurationError('QUESTION_REQUIRED');
+        }
+        for (var i = 0; i &lt; questions.length; i++) {
+            var q = questions[i];
+            if (ModelValidationUtils.isHtmlEmpty(q.Question)) {
+                throw ConfigurationError('EMPTY_QUESTION');
+            }
+            if (ModelValidationUtils.isStringEmpty(q.CorrectAnswer)) {
+                throw ConfigurationError('MISSING_CORRECT_ANSWER');
+            }
+            if (ModelValidationUtils.isStringEmpty(q.WrongAnswer1) &amp;&amp; ModelValidationUtils.isStringEmpty(q.WrongAnswer2) &amp;&amp; ModelValidationUtils.isStringEmpty(q.WrongAnswer3)
+            ) {
+                throw ConfigurationError('MISSING_WRONG_ANSWER');
+            }
+            if (helpButtons &amp;&amp; ModelValidationUtils.isHtmlEmpty(q.Hint) &amp;&amp; helpButtonsMode !== '50/50') {
+                throw ConfigurationError('MISSING_HINT');
+            }
+        }
+        return questions;
+    }
+
+    function getSpeechTextProperty (rawValue, defaultValue) {
+        var value = rawValue.trim();
+
+        if (value === undefined || value === null || value === '') {
+            return defaultValue;
+        }
+
+        return value;
+    }
+
+    presenter.setSpeechTexts = function(speechTexts) {
+        presenter.speechTexts = {
+            Question: DEFAULT_TTS_PHRASES.Question,
+            Answer: DEFAULT_TTS_PHRASES.Answer,
+            FiftyFiftyButton: DEFAULT_TTS_PHRASES.FiftyFiftyButton,
+            FiftyFiftyButtonWhenNotEnoughAnswers: DEFAULT_TTS_PHRASES.FiftyFiftyButtonWhenNotEnoughAnswers,
+            HintButton: DEFAULT_TTS_PHRASES.HintButton,
+            CommentField: DEFAULT_TTS_PHRASES.CommentField,
+            Hint: DEFAULT_TTS_PHRASES.Hint,
+            Summary: DEFAULT_TTS_PHRASES.Summary,
+            Selected: DEFAULT_TTS_PHRASES.Selected,
+            Correct: DEFAULT_TTS_PHRASES.Correct,
+            Wrong: DEFAULT_TTS_PHRASES.Wrong,
+            Inactive: DEFAULT_TTS_PHRASES.Inactive,
+            OutOf: DEFAULT_TTS_PHRASES.OutOf,
+        };
+
+        if (!speechTexts) {
+            return;
+        }
+
+        presenter.speechTexts = {
+            Question: getSpeechTextProperty(
+                speechTexts.Question.Question,
+                presenter.speechTexts.Question),
+            Answer: getSpeechTextProperty(
+                speechTexts.Answer.Answer,
+                presenter.speechTexts.Answer),
+            FiftyFiftyButton: getSpeechTextProperty(
+                speechTexts.FiftyFiftyButton.FiftyFiftyButton,
+                presenter.speechTexts.FiftyFiftyButton),
+            FiftyFiftyButtonWhenNotEnoughAnswers: getSpeechTextProperty(
+                speechTexts.FiftyFiftyButtonWhenNotEnoughAnswers.FiftyFiftyButtonWhenNotEnoughAnswers,
+                presenter.speechTexts.FiftyFiftyButtonWhenNotEnoughAnswers),
+            HintButton: getSpeechTextProperty(
+                speechTexts.HintButton.HintButton,
+                presenter.speechTexts.HintButton),
+            CommentField: getSpeechTextProperty(
+                speechTexts.CommentField.CommentField,
+                presenter.speechTexts.CommentField),
+            Hint: getSpeechTextProperty(
+                speechTexts.Hint.Hint,
+                presenter.speechTexts.Hint),
+            Summary: getSpeechTextProperty(
+                speechTexts.Summary.Summary,
+                presenter.speechTexts.Summary),
+            Selected: getSpeechTextProperty(
+                speechTexts.Selected.Selected,
+                presenter.speechTexts.Selected),
+            Correct: getSpeechTextProperty(
+                speechTexts.Correct.Correct,
+                presenter.speechTexts.Correct),
+            Wrong: getSpeechTextProperty(
+                speechTexts.Wrong.Wrong,
+                presenter.speechTexts.Wrong),
+            Inactive: getSpeechTextProperty(
+                speechTexts.Inactive.Inactive,
+                presenter.speechTexts.Inactive),
+            OutOf: getSpeechTextProperty(
+                speechTexts.OutOf.OutOf,
+                presenter.speechTexts.OutOf)
+        };
+    };
+
+    presenter.setupConfig = function AddonQuiz_setupConfig(model) {
+        var helpButtons = ModelValidationUtils.validateBoolean(model['ShowHelpButtons']);
+        presenter.setSpeechTexts(model['speechTexts']);
+        presenter.config = {
+            visibility: ModelValidationUtils.validateBoolean(model['Is Visible']),
+            questions: validateQuestions(model['Questions'], helpButtons, model["HelpButtonsMode"]),
+            helpButtons: helpButtons,
+            nextLabel: model['NextLabel'] || '',
+            gameLostMessage: model['GameLostMessage'],
+            gameWonMessage: model['GameWonMessage'],
+            gameSummaryMessage: model['GameSummaryMessage'],
+            correctGameMessage: model['CorrectGameMessage'],
+            wrongGameMessage: model['WrongGameMessage'],
+            centerVertically: ModelValidationUtils.validateBoolean(model['Center vertically']),
+            isActivity: ModelValidationUtils.validateBoolean(model['isActivity']),
+            isVisible: ModelValidationUtils.validateBoolean(model['Is Visible']),
+            nextAfterSelect: ModelValidationUtils.validateBoolean(model['NextAfterSelect']),
+            testMode: ModelValidationUtils.validateBoolean(model['TestMode']),
+            showSummary: ModelValidationUtils.validateBoolean(model['ShowSummary']),
+            langTag: model["langAttribute"],
+            helpButtonsMode: model["HelpButtonsMode"]
+        }
+    };
+
+    function shuffle(a) {
+        var j, x, i;
+        for (i = a.length; i; i--) {
+            j = Math.floor(Math.random() * i);
+            x = a[i - 1];
+            a[i - 1] = a[j];
+            a[j] = x;
+        }
+    };
+
+    function cleanWorkspace() {
+        unbindEvents();
+        presenter.activeElements = [];
+        var wrapper = presenter.$view.find('.question-wrapper');
+        wrapper.children().remove();
+    };
+
+    function showInHintArea($element) {
+        presenter.hintWrapper.children().remove();
+        presenter.hintWrapper.append($element);
+    };
+
+    function gameWonMessage() {
+        var wrapper = $('&lt;div class="game-won-message-wrapper"&gt;&lt;/div&gt;');
+        var message = $(`&lt;div class="${CSS_CLASSES.GAME_WON_MESSAGE}"&gt;&lt;/div&gt;`);
+        if(presenter.config.showSummary) {
+            message.html(presenter.config.gameWonMessage +
+                '&lt;div&gt;' + presenter.config.gameSummaryMessage + '&lt;div&gt;' + presenter.config.correctGameMessage + ': ' + getScore() + '&lt;/div&gt;&lt;div&gt;' + presenter.config.wrongGameMessage + ': ' + (presenter.config.questions.length - getScore()) + '&lt;/div&gt;' + '&lt;/div&gt;');
+        }else{
+            message.html(presenter.config.gameWonMessage);
+        }
+        wrapper.append(message);
+        showInHintArea(wrapper);
+    };
+
+    function gameLostMessage() {
+        var wrapper = $('&lt;div class="game-lost-message-wrapper"&gt;&lt;/div&gt;');
+        var message = $(`&lt;div class="${CSS_CLASSES.GAME_LOST_MESSAGE}"&gt;&lt;/div&gt;`);
+        if(presenter.config.showSummary) {
+            message.html(presenter.config.gameLostMessage +
+                '&lt;div&gt;' + presenter.config.gameSummaryMessage + '&lt;div&gt;' + presenter.config.correctGameMessage + ': ' + getScore() + '&lt;/div&gt;&lt;div&gt;' + presenter.config.wrongGameMessage + ': ' + (presenter.config.questions.length - getScore()) + '&lt;/div&gt;' + '&lt;/div&gt;');
+        }else{
+            message.html(presenter.config.gameLostMessage);
+        }
+        wrapper.append(message);
+        showInHintArea(wrapper);
+    };
+
+    function gameSummary() {
+        var wrapper = $('&lt;div class="game-summary-message-wrapper"&gt;&lt;/div&gt;');
+        var message = $('&lt;div class="game-summary-message"&gt;&lt;/div&gt;');
+        message.html(presenter.config.gameSummaryMessage + '&lt;div&gt;' + presenter.config.correctGameMessage + ': ' + getScore() + '&lt;/div&gt;&lt;div&gt;' + presenter.config.wrongGameMessage + ': ' + (presenter.config.questions.length - getScore()) + '&lt;/div&gt;');
+        wrapper.append(message);
+        showInHintArea(wrapper);
+    };
+
+    function getSelectItemAction(answer, $this) {
+        var isCorrect = answer == getCurrentQuestion().CorrectAnswer;
+        return function selectItemAction(e) {
+            if (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            var eventData = {
+                'source': presenter.addonID,
+                'item': state.currentQuestion,
+                'value': '1',
+                'score': '1'
+            };
+            state.selectedAnswer = answer;
+            if (!presenter.config.testMode) {
+                if (isCorrect) {
+                    state.score[state.currentQuestion - 1] = 1;
+                    $this.addClass(CSS_CLASSES.CORRECT);
+                    eventBus.sendEvent('ValueChanged', eventData);
+                    if (isLastQuestion()) {
+                        gameWonMessage();
+                        eventBus.sendEvent('ValueChanged', presenter.createAllOKEventData());
+                        unbindEvents();
+                    } else {
+                        presenter.nextButton.addClass(CSS_CLASSES.ACTIVE);
+                        unbindEvents(presenter.nextButton);
+                        if (presenter.config.nextAfterSelect 
+                            &amp;&amp; !presenter.isWCAGOn) {
+                            unbindEvents();
+                            setTimeout(function () {
+                                nextAfterSelectCallback();
+                            }, 500);
+                        }
+                    }
+                } else {
+                    state.score[state.currentQuestion - 1] = 0;
+                    $this.addClass(CSS_CLASSES.WRONG);
+                    eventData['score'] = '0';
+                    eventBus.sendEvent('ValueChanged', eventData);
+                    gameLostMessage();
+                    state.wasWrong = true;
+                    unbindEvents();
+                }
+            } else {
+                $this.addClass(CSS_CLASSES.OPTION);
+
+                if (isCorrect) {
+                    state.score[state.currentQuestion - 1] = 1;
+                } else {
+                    state.score[state.currentQuestion - 1] = 0;
+                    eventData['score'] = '0';
+                }
+                eventBus.sendEvent('ValueChanged', eventData);
+
+                if (isLastQuestion()) {
+                    if (getScore() &gt;= presenter.config.questions.length) {
+                        gameWonMessage();
+                        state.wasWrong = false;
+                        eventBus.sendEvent('ValueChanged', presenter.createAllOKEventData());
+                    }else{
+                        gameLostMessage();
+                        state.wasWrong = true;
+                    }
+                    unbindEvents();
+                } else {
+                    presenter.nextButton.addClass(CSS_CLASSES.ACTIVE);
+                    unbindEvents(presenter.nextButton);
+                    if (presenter.config.nextAfterSelect 
+                        &amp;&amp; !presenter.isWCAGOn) {
+                        unbindEvents();
+                        setTimeout(function () {
+                            nextAfterSelectCallback();
+                        }, 500);
+                    }
+                }
+
+            }
+        }
+    }
+
+    function bindEvents() {
+        var elements;
+        if (arguments.length &gt; 0) {
+            elements = Array.prototype.slice.call(arguments);
+        } else {
+            elements = presenter.activeElements;
+        }
+        unbindEvents();
+        for (var i = 0; i &lt; elements.length; i++) {
+            var $el = elements[i];
+            $el.bind('click', $el.clickAction);
+        }
+    };
+
+    function unbindEvents() {
+        var args = Array.prototype.slice.call(arguments);
+        for (var i = 0; i &lt; presenter.activeElements.length; i++) {
+            var $el = presenter.activeElements[i];
+            if (args.indexOf($el) &gt; -1) {
+                continue;
+            }
+            $el.unbind('click', $el.clickAction);
+        }
+    };
+
+    function getCurrentQuestion() {
+        return presenter.config.questions[state.currentQuestion - 1];
+    }
+
+    function isLastQuestion() {
+        return state.currentQuestion === presenter.config.questions.length;
+    }
+
+    function nextAfterSelectCallback() {
+        nextButtonAction();
+        bindEvents();
+    }
+
+    function fiftyFiftyAction(e) {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        if (state.answersOrder.length &gt;= 4 &amp;&amp; !state.fiftyFiftyUsed) {
+            // clue:
+            state.fiftyFiftyUsed = true;
+            unbindEvents();
+            var removedItems = 0,
+                i = -1;
+            while (removedItems &lt; 2) {
+                i++;
+                if (i == state.answersOrder.length) {
+                    i = 0;
+                }
+                var item = state.answersOrder[i];
+                if (item === 0 || item == null) {
+                    continue;
+                }
+                var x = Math.round(Math.random());
+                if (x) {
+                    removedItems++;
+                    state.answersOrder[i] = null;
+                }
+            }
+            presenter.showCurrentQuestion();
+            bindEvents();
+        }
+    };
+
+    function showHint() {
+        var $hint = $(`&lt;div class="${CSS_CLASSES.QUESTION_HINT}"&gt;&lt;/div&gt;`).html(getCurrentQuestion().Hint);
+        showInHintArea($hint);
+        presenter.$view.find('.hint-button').addClass('used');
+    }
+
+    function nextButtonAction(e) {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        if ((!state.wasWrong) &amp;&amp; (state.selectedAnswer !== null) &amp;&amp; state.currentQuestion &lt; presenter.config.questions.length) {
+            state.selectedAnswer = null;
+            state.answersOrder = false;
+            state.currentQuestion++;
+            presenter.showCurrentQuestion();
+            if (presenter.keyboardControllerObject.keyboardNavigationActive) {
+                presenter.keyboardControllerObject.markCurrentElement(0);
+                presenter.keyboardControllerObject.readCurrentElement();
+            }
+            bindEvents();
+        }
+    }
+
+    function hintAction(e) {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        if (state.hintUsed === null) {
+            state.hintUsed = state.currentQuestion;
+            showHint();
+        }
+    };
+
+    function addProgressBar(wrapper) {
+        var progress = $('&lt;div class="quiz-progress"&gt;&lt;/div&gt;'),
+            current = state.currentQuestion,
+            len = presenter.config.questions.length,
+            info = '&lt;span class="current-question-number"&gt;' + current + '&lt;/span&gt;' +
+                '&lt;span class="divider"&gt;/&lt;/span&gt;' +
+                '&lt;span class="questions-number"&gt;' + len + '&lt;/span&gt;';
+        progress.html(info);
+        wrapper.append(progress);
+    };
+
+    function showQuestion(q, showAnswer) {
+        var $q = presenter.$view.find('.question-wrapper');
+        var $title = $(`&lt;div class="${CSS_CLASSES.QUESTION_TITLE}"&gt;&lt;/div&gt;`);
+        var $tips = $('&lt;div class="question-tips"&gt;&lt;/div&gt;');
+        var $nextButton = $(`&lt;div class="${CSS_CLASSES.NEXT_QUESTION_BUTTON}"&gt;&lt;/div&gt;`);
+        $nextButton.text(presenter.config.nextLabel);
+        $nextButton.clickAction = nextButtonAction;
+
+
+        cleanWorkspace();
+
+        $title.html(q.Question);
+
+        var tempAnswers = [q.CorrectAnswer];
+        [q.WrongAnswer1, q.WrongAnswer2, q.WrongAnswer3].forEach(function (wrongAnswer) {
+            if (wrongAnswer &amp;&amp; wrongAnswer.length &gt; 0) {
+                tempAnswers.push(wrongAnswer);
+            }
+        });
+
+        if (!state.answersOrder) {
+            state.answersOrder = $.map(tempAnswers, function (element, index) {
+                return index;
+            });
+            shuffle(state.answersOrder);
+        }
+
+        var answers = $.map(tempAnswers, function (element, index) {
+            return index;
+        });
+        for (var i = 0; i &lt; answers.length; i++) {
+            var index = state.answersOrder[i];
+            if (index === null) {
+                answers[i] = null;
+            } else {
+                answers[i] = tempAnswers[index];
+            }
+        }
+
+        var labels = ['A: ', 'B: ', 'C: ', 'D: '];
+
+        for (var i = 0; i &lt; answers.length; i++) {
+            var $tip = $(`&lt;div class="${CSS_CLASSES.QUESTION_TIP}"&gt;&lt;/div&gt;`);
+            var answer = answers[i];
+
+            var headersOfAnswer = document.createElement('div');
+            var $headersOfAnswer = $(headersOfAnswer);
+            $headersOfAnswer.addClass("headers-of-answers");
+
+            var divAnswers = document.createElement('div');
+            var $divAnswers = $(divAnswers);
+            $divAnswers.addClass('answers');
+
+            var label = labels[i];
+            $headersOfAnswer.text(label);
+            $divAnswers.text(answer || '');
+            if (answer === null) {
+                $tip.addClass(CSS_CLASSES.REMOVED);
+                $tip.clickAction = function () {
+                };
+            } else {
+                $tip.clickAction = getSelectItemAction(answer, $tip);
+            }
+
+            if (answer == q.CorrectAnswer) {
+                if (showAnswer) {
+                    $tip.addClass('correct-answer');
+                } else if (state.selectedAnswer == answer) {
+                    $tip.addClass('correct-answer');
+                    if (state.currentQuestion &lt; presenter.config.questions.length) {
+                        $nextButton.addClass(CSS_CLASSES.ACTIVE);
+                    }
+                }
+            } else if (state.wasWrong &amp;&amp; state.selectedAnswer == answer) {
+                $tip.addClass(CSS_CLASSES.WRONG);
+            }
+            $tips.append($tip);
+            $tip.append($headersOfAnswer);
+            $tip.append($divAnswers);
+            presenter.activeElements.push($tip)
+
+            if (presenter.config.centerVertically) {
+                $headersOfAnswer.addClass('center-vertically');
+                $divAnswers.addClass('center-vertically');
+            }
+        }
+
+        $q.append($title);
+        $q.append($tips);
+        var $buttons = $('&lt;div class="question-hint-buttons"&gt;&lt;/div&gt;');
+        addProgressBar($buttons);
+        $q.append($buttons);
+        presenter.hintWrapper = $(`&lt;div class="${CSS_CLASSES.QUESTION_HINT_WRAPPER}"&gt;&lt;/div&gt;`);
+        $q.append(presenter.hintWrapper);
+
+        presenter.displayHint($q, $buttons);
+
+        presenter.activeElements.push($nextButton);
+        presenter.nextButton = $nextButton;
+        if (!presenter.config.nextAfterSelect) {
+            $buttons.append($nextButton);
+        }
+        if (state.wasWrong) {
+            gameLostMessage();
+        } else if (haveWon()) {
+            gameWonMessage();
+        } else if (state.selectedAnswer) {
+            bindEvents(presenter.nextButton);
+        } else if (!showAnswer) {
+            bindEvents();
+        }
+        if (presenter.keyboardControllerObject) {
+            presenter.reloadKeyboardController();
+        }
+    }
+
+    presenter.displayHint = function ($q, $buttons) {
+        if (presenter.config.helpButtons) {
+            var $fiftyFifty = $(`&lt;div class="${CSS_CLASSES.FIFTY_FIFTY}"&gt;&lt;/div&gt;`);
+            var $hintButton = $(`&lt;div class="${CSS_CLASSES.HINT_BUTTON}"&gt;&lt;/div&gt;`);
+            $fiftyFifty.clickAction = fiftyFiftyAction;
+            $hintButton.clickAction = hintAction;
+
+            if (presenter.config.helpButtonsMode === 'Hint') {
+                $buttons.append($hintButton);
+                presenter.activeElements.push($hintButton);
+            } else if (presenter.config.helpButtonsMode === '50/50') {
+                $buttons.append($fiftyFifty);
+                presenter.activeElements.push($fiftyFifty);
+            } else {
+                $buttons.append($fiftyFifty);
+                $buttons.append($hintButton);
+                presenter.activeElements.push($fiftyFifty);
+                presenter.activeElements.push($hintButton);
+            }
+
+            $q.addClass('with-hint');
+            if (state.fiftyFiftyUsed) {
+                $fiftyFifty.addClass('used');
+            }
+            if (state.hintUsed) {
+                $hintButton.addClass('used');
+                if (state.hintUsed == state.currentQuestion) {
+                    showHint();
+                }
+            }
+        } else {
+            $q.addClass('without-hint');
+        }
+    }
+
+    function haveWon() {
+        var q = getCurrentQuestion();
+        return state.selectedAnswer == q.CorrectAnswer &amp;&amp; state.currentQuestion == presenter.config.questions.length;
+    }
+
+    function initializeLogic(view, model, preview) {
+        setupDefaults();
+        presenter.$view = $(view);
+        try {
+            presenter.setupConfig(model);
+            presenter.showCurrentQuestion();
+            presenter.config.questions.forEach(function () {
+                state.score.push(0);
+            });
+        } catch (error) {
+            var $error = $('&lt;div class="quiz-error-layer"&gt;&lt;/div&gt;');
+            var text = "&lt;strong&gt;" + error.name + "&lt;/strong&gt;: " + error.message;
+            $error.html(text);
+            presenter.$view.find('.question-wrapper').append($error);
+            presenter.config = {};
+        }
+
+        if (!preview) {
+            bindEvents();
+        }
+        presenter.buildKeyboardController();
+    };
+
+    presenter.showCurrentQuestion = function AddonQuiz_showCurrentQuestion() {
+        showQuestion(getCurrentQuestion(), false);
+        renderMathJax();
+    };
+
+    function renderMathJax() {
+        if (presenter.isLoaded) {
+            reloadMathJax();
+        }
+    }
+
+    function reloadMathJax() {
+        window.MathJax.Callback.Queue().Push(function () {
+            window.MathJax.Hub.Typeset(presenter.$view[0]);
+        });
+    }
+
+    presenter.setPlayerController = function AddonQuiz_setPlayerController(controller) {
+        playerController = controller;
+    };
+
+    presenter.setVisibility = function AddonQuiz_setVisibility(isVisible) {
+        state.isVisible = isVisible;
+        presenter.$view.css('visibility', isVisible ? 'visible' : 'hidden');
+    };
+
+    presenter.hide = function AddonQuiz_hide() {
+        presenter.setVisibility(false);
+    };
+
+    presenter.show = function AddonQuiz_show() {
+        presenter.setVisibility(true);
+    };
+
+    presenter.run = function AddonQuiz_run(view, model) {
+        eventBus = playerController.getEventBus();
+        presenter.addonID = model.ID;
+        var upgradedModel = presenter.upgradeModel(model);
+        initializeLogic(view, upgradedModel, false);
+        presenter.setVisibility(presenter.config.isVisible);
+
+        eventBus.addEventListener('ShowAnswers', this);
+        eventBus.addEventListener('HideAnswers', this);
+
+        presenter.$view[0].addEventListener('DOMNodeRemoved', function onDOMNodeRemoved(ev) {
+            if (ev.target === this) {
+                presenter.destroy();
+            }
+        });
+
+        presenter.isLoaded = true;
+    };
+
+    presenter.createPreview = function AddonQuiz_createPreview(view, model) {
+
+        var upgradedModel = presenter.upgradeModel(model);
+        initializeLogic(view, upgradedModel, true);
+    };
+
+    presenter.getState = function AddonQuiz_getState() {
+        if ("{}" === JSON.stringify(presenter.config)) {
+            return "";
+        }
+        return JSON.stringify(state);
+    };
+
+    presenter.setState = function AddonQuiz_setState(gotState) {
+        if (!gotState) {
+            return;
+        }
+        state = JSON.parse(gotState);
+        presenter.showCurrentQuestion();
+        presenter.setVisibility(state.isVisible);
+    };
+
+    presenter.setShowErrorsMode = function AddonQuiz_setShowErrorsMode() {
+        if (!presenter.config.isActivity || presenter.isErrorMode) {
+            return;
+        }
+
+        presenter.isErrorMode = true;
+
+        if (presenter.isShowAnswersActive) {
+            presenter.hideAnswers();
+        }
+
+        showErrorsMode();
+    };
+
+    presenter.setWorkMode = function AddonQuiz_setWorkMode() {
+        if (!presenter.config.isActivity || !presenter.isErrorMode) {
+            return;
+        }
+
+        presenter.isErrorMode = false;
+
+        if (presenter.isShowAnswersActive) {
+            presenter.hideAnswers();
+        }
+
+        workMode();
+    };
+
+    function showErrorsMode() {
+        presenter.disable();
+    };
+
+    function workMode() {
+        presenter.enable();
+    };
+
+    presenter.reset = function AddonQuiz_reset() {
+        presenter.setWorkMode();
+        setupDefaults();
+        presenter.showCurrentQuestion();
+        bindEvents();
+        presenter.setVisibility(presenter.config.isVisible);
+    };
+
+    presenter.getErrorCount = function AddonQuiz_getErrorCount() {
+        if (!presenter.config.isActivity) return 0;
+        return getErrorCount();
+    };
+
+    presenter.getMaxScore = function AddonQuiz_getMaxScore() {
+        if (!presenter.config.isActivity) return 0;
+        return getMaxScore();
+    };
+
+    presenter.getScore = function AddonQuiz_getScore() {
+        if (!presenter.config.isActivity) return 0;
+        return getScore();
+    };
+
+    function getErrorCount() {
+        if (!presenter.config.testMode) {
+            return state.wasWrong ? 1 : 0;
+        } else {
+            var errors = 0;
+            state.score.forEach(function (e) {
+                if (e == 0) {
+                    errors = errors + 1;
+                }
+            });
+            return errors;
+        }
+    }
+
+    function getMaxScore() {
+        return presenter.config.questions.length;
+    }
+
+    function getScore() {
+        var score = 0;
+        state.score.forEach(function (e) {
+            if (e &gt; 0) {
+                score = score + e;
+            }
+        });
+        return score;
+    }
+
+    presenter.executeCommand = function AddonQuiz_executeCommand(name, params) {
+        if (presenter.isErrorMode) {
+            return;
+        }
+
+        var commands = {
+            'isAllOK': presenter.isAllOK,
+            'isAttempted': presenter.isAttempted,
+            'show': presenter.show,
+            'hide': presenter.hide,
+            'disable': presenter.disable,
+            'enable': presenter.enable,
+            'reset': presenter.reset
+        };
+
+        Commands.dispatch(commands, name, params, presenter);
+    };
+
+    presenter.isAllOK = function AddonQuiz_isAllOK() {
+        return presenter.getMaxScore() === presenter.getScore() &amp;&amp; presenter.getErrorCount() === 0;
+    };
+
+    presenter.isAttempted = function AddonQuiz_isAttempted() {
+        return (state.currentQuestion &gt; 1) || state.wasWrong || (state.selectedAnswer !== null);
+    };
+
+    presenter.disable = function AddonQuiz_disable() {
+        presenter.$view.find('.question-wrapper').addClass('disabled');
+        unbindEvents();
+    };
+
+    presenter.enable = function AddonQuiz_enable() {
+        presenter.$view.find('.question-wrapper').removeClass('disabled');
+        bindEvents();
+    };
+
+    presenter.destroy = function () {
+        presenter.$view[0].removeEventListener('DOMNodeRemoved', presenter.destroy);
+        unbindEvents();
+        presenter.$view.off();
+        presenter.eventBus = null;
+        presenter.view = null;
+    };
+
+    presenter.upgradeModel = function (model) {
+        var upgradedModel = presenter.upgradeAcceptWrongAnswers(model);
+        upgradedModel = presenter.addLangTag(upgradedModel);
+        upgradedModel = presenter.addSpeechTexts(upgradedModel);
+        upgradedModel = presenter.addHelpButtonsMode(upgradedModel);
+
+        return upgradedModel;
+    };
+
+    presenter.upgradeAcceptWrongAnswers = function (model) {
+        if (!model['GameSummaryMessage']) {
+            model['GameSummaryMessage'] = 'Score';
+        }
+        if (!model['CorrectGameMessage']) {
+            model['CorrectGameMessage'] = 'Correct';
+        }
+        if (!model['WrongGameMessage']) {
+            model['WrongGameMessage'] = 'Wrong';
+        }
+        return model;
+    };
+
+    presenter.addLangTag = function AddonTable_upgradeLangTag(model) {
+        var upgradedModel = {};
+        $.extend(true, upgradedModel, model);
+
+        if (upgradedModel['langAttribute'] === undefined) {
+            upgradedModel['langAttribute'] =  '';
+        }
+
+        return upgradedModel;
+    };
+
+    presenter.addHelpButtonsMode = function (model) {
+        var upgradedModel = {};
+        $.extend(true, upgradedModel, model);
+
+        if (!upgradedModel.hasOwnProperty('HelpButtonsMode')) {
+            upgradedModel['HelpButtonsMode'] =  'Both';
+        }
+
+        return upgradedModel;
+    }
+
+    presenter.addSpeechTexts = function (model) {
+        var upgradedModel = {};
+        $.extend(true, upgradedModel, model);
+        if (!model['speechTexts']) {
+            upgradedModel['speechTexts'] = {
+                Question: {Question: ''},
+                Answer: {Answer: ''},
+                FiftyFiftyButton: {FiftyFiftyButton: ''},
+                FiftyFiftyButtonWhenNotEnoughAnswers: {FiftyFiftyButtonWhenNotEnoughAnswers: ''},
+                HintButton: {HintButton: ''},
+                CommentField: {CommentField: ''},
+                Hint: {Hint: ''},
+                Summary: {Summary: ''},
+                Selected: {Selected: ''},
+                Correct: {Correct: ''},
+                Wrong: {Wrong: ''},
+                Inactive: {Inactive: ''},
+                OutOf: {OutOf: ''},
+            }
+        }
+        return upgradedModel;
+   };
+
+
+    presenter.onEventReceived = function AddonQuiz_onEventReceived(eventName) {
+        if (eventName == "ShowAnswers") {
+            presenter.showAnswers();
+        }
+
+        if (eventName == "HideAnswers") {
+            presenter.hideAnswers();
+        }
+    };
+
+    presenter.showAnswers = function AddonQuiz_showAnswers() {
+        if (!presenter.config.isActivity) {
+            return;
+        }
+        presenter.isShowAnswersActive = true;
+        showAnswers();
+    };
+
+    presenter.hideAnswers = function AddonQuiz_hideAnswers() {
+        if (!presenter.config.isActivity || !presenter.isShowAnswersActive) {
+            return;
+        }
+        presenter.isShowAnswersActive = false;
+        hideAnswers();
+    };
+
+    function showAnswers() {
+        showQuestion(getCurrentQuestion(), true);
+        reloadMathJax();
+    }
+
+    function hideAnswers() {
+        presenter.showCurrentQuestion();
+    }
+
+    presenter.setWCAGStatus = function(isWCAGOn) {
+        presenter.isWCAGOn = isWCAGOn;
+    };
+
+    presenter.getTextToSpeechOrNull = function AddonQuiz_getTextToSpeechOrNull(playerController) {
+        if (playerController) {
+            return playerController.getModule('Text_To_Speech1');
+        }
+
+        return null;
+    };
+
+    presenter.speak = function (data) {
+        var tts = presenter.getTextToSpeechOrNull(playerController);
+        if (tts &amp;&amp; presenter.isWCAGOn) {
+            tts.speak(data);
+        }
+    };
+
+    presenter.speakWithCallback = function (data, callbackFunction) {
+        var tts = presenter.getTextToSpeechOrNull(playerController);
+        if (tts &amp;&amp; presenter.isWCAGOn) {
+            tts.speakWithCallback(data, callbackFunction);
+        }
+    }
+
+    presenter.buildKeyboardController = function () {
+        presenter.keyboardControllerObject
+            = new QuizKeyboardController(
+                presenter.getElementsForKeyboardNavigation(), 1);
+    };
+
+    presenter.reloadKeyboardController = function () {
+        presenter.keyboardControllerObject.reload(
+            presenter.getElementsForKeyboardNavigation(), 1);
+    };
+
+    presenter.getElementsForKeyboardNavigation = function () {
+        return presenter.$view.find(`
+            .${CSS_CLASSES.QUESTION_TITLE},
+            .${CSS_CLASSES.QUESTION_TIP},
+            .${CSS_CLASSES.FIFTY_FIFTY},
+            .${CSS_CLASSES.HINT_BUTTON},
+            .${CSS_CLASSES.NEXT_QUESTION_BUTTON},
+            .${CSS_CLASSES.QUESTION_HINT_WRAPPER}
+        `);
+    };
+
+    presenter.getQuestionTipsElementsForKeyboardNavigation = function () {
+        return presenter.$view.find(`.${CSS_CLASSES.QUESTION_TIP}`);
+    };
+
+    presenter.getCommendFieldElementForKeyboardNavigation = function () {
+        return presenter.$view.find(`.${CSS_CLASSES.QUESTION_HINT_WRAPPER}`);
+    };
+
+    presenter.getGameMessageElementForKeyboardNavigationFromElement = function ($element) {
+        return $element.find(`.${CSS_CLASSES.GAME_LOST_MESSAGE}, .${CSS_CLASSES.GAME_WON_MESSAGE}`);
+    };
+
+    presenter.keyboardController = function(keycode, isShiftKeyDown, event) {
+        presenter.keyboardControllerObject.handle(keycode, isShiftKeyDown, event);
+    };
+
+    function QuizKeyboardController (elements, columnsCount) {
+        KeyboardController.call(this, elements, columnsCount);
+    }
+
+    QuizKeyboardController.prototype = Object.create(window.KeyboardController.prototype);
+    QuizKeyboardController.prototype.constructor = QuizKeyboardController;
+
+    QuizKeyboardController.prototype.exitWCAGMode = function () {
+        KeyboardController.prototype.exitWCAGMode.call(this);
+        presenter.setWCAGStatus(false);
+    };
+
+    QuizKeyboardController.prototype.reload = function (elements, columnsCount) {
+        this.isSelectEnabled = true;
+        this.keyboardNavigationElements = elements;
+        this.columnsCount = columnsCount;
+        this.keyboardNavigationElementsLen = elements.length;
+        if (this.keyboardNavigationActive) {
+            this.refreshMarkOnCurrentElement();
+            this.enter();
+        }
+    };
+
+    QuizKeyboardController.prototype.switchElement = function (move) {
+        KeyboardController.prototype.switchElement.call(this, move);
+        this.readCurrentElement();
+    };
+
+    QuizKeyboardController.prototype.getTarget = function (element, willBeClicked) {
+        return $(element);
+    };
+
+    QuizKeyboardController.prototype.readCurrentElement = function () {
+        this.readElement(this.keyboardNavigationCurrentElement);
+    };
+
+    QuizKeyboardController.prototype.refreshMarkOnCurrentElement = function () {
+        this.markCurrentElement(this.keyboardNavigationCurrentElementIndex);
+    };
+
+    QuizKeyboardController.prototype.readElement = function (element) {
+        var $element = this.getTarget(element, false);
+
+        if ($element.hasClass(CSS_CLASSES.QUESTION_TITLE))
+            presenter.speak(getQuestionTitleTextVoiceObject($element))
+        else if ($element.hasClass(CSS_CLASSES.QUESTION_TIP))
+            presenter.speak(getQuestionTipTextVoiceObject($element))
+        else if ($element.hasClass(CSS_CLASSES.FIFTY_FIFTY))
+            presenter.speak(getFiftyFiftyButtonTextVoiceObject())
+        else if ($element.hasClass(CSS_CLASSES.HINT_BUTTON))
+            presenter.speak(getHintButtonTextVoiceObject())
+        else if ($element.hasClass(CSS_CLASSES.NEXT_QUESTION_BUTTON))
+            presenter.speak(getNextQuestionTextVoiceObject($element))
+        else if ($element.hasClass(CSS_CLASSES.QUESTION_HINT_WRAPPER))
+            presenter.speak(getCommentFieldTextVoiceObject($element))
+    };
+
+    function getQuestionTitleTextVoiceObject($element) {
+        var voicesArray = [];
+
+        const prefix = presenter.speechTexts.Question;
+
+        var language = document.documentElement.lang;
+
+        const currentQuestionAsText = window.TTSUtils.numberToOrdinalNumber(state.currentQuestion, language, window.TTSUtils.GENDER.NEUTER);
+        const questionsLengthAsText = window.TTSUtils.numberToOrdinalNumber(presenter.config.questions.length, language, window.TTSUtils.GENDER.FEMININE);
+        const questionInfo = `${currentQuestionAsText} ${presenter.speechTexts.OutOf} ${questionsLengthAsText}`;
+        const texts = [prefix, questionInfo, ];
+        pushMessagesToTextVoiceObject(voicesArray, texts);
+        
+        return createAndConcatElementWithTextVoiceObject(voicesArray, $element);
+    }
+
+    function getQuestionTipTextVoiceObject($element) {
+        var voicesArray = [];
+
+        const prefix = presenter.speechTexts.Answer;
+        pushMessageToTextVoiceObject(voicesArray, prefix);
+
+
+        voicesArray = createAndConcatElementsWithTextVoiceObject(voicesArray, $element.children());
+        if ($element.hasClass(CSS_CLASSES.REMOVED))
+            return updateQuestionTipTextVoiceObjectWithRemoved(voicesArray);
+        else if (isQuestionTipSelected($element))
+            return updateQuestionTipTextVoiceObjectWithSelected(voicesArray, $element);
+        return voicesArray;
+    }
+
+    function isQuestionTipSelected($questionTip) {
+        return ($questionTip.hasClass(CSS_CLASSES.CORRECT)
+                || $questionTip.hasClass(CSS_CLASSES.WRONG)
+                || $questionTip.hasClass(CSS_CLASSES.OPTION));
+    }
+
+    function updateQuestionTipTextVoiceObjectWithRemoved(textVoiceObject) {
+        var voicesArray = [];
+        const status = presenter.speechTexts.Inactive;
+        pushMessageToTextVoiceObject(voicesArray, status);
+        return textVoiceObject.concat(voicesArray);
+    }
+
+    function updateQuestionTipTextVoiceObjectWithSelected(textVoiceObject, $element) {
+        var voicesArray = [];
+        var texts = [presenter.speechTexts.Selected, ]
+        if ($element.hasClass(CSS_CLASSES.CORRECT)) 
+            texts.push(presenter.speechTexts.Correct);
+        else if ($element.hasClass(CSS_CLASSES.WRONG))
+            texts.push(presenter.speechTexts.Wrong);
+        pushMessagesToTextVoiceObject(voicesArray, texts);
+        return textVoiceObject.concat(voicesArray);
+    }
+
+    function getFiftyFiftyButtonTextVoiceObject() {
+        var voicesArray = [];
+        var texts = [presenter.speechTexts.FiftyFiftyButton, ];
+
+        var isNotEnoughAnswers = isLessThenFourAnswers();
+
+        if (state.fiftyFiftyUsed || isNotEnoughAnswers || isQuestionAnswered()) {
+            texts.push(presenter.speechTexts.Inactive);
+            
+            if (isNotEnoughAnswers) {
+                texts.push(presenter.speechTexts.FiftyFiftyButtonWhenNotEnoughAnswers);
+            }
+        }
+        pushMessagesToTextVoiceObject(voicesArray, texts);
+        return voicesArray;
+    }
+
+    function isLessThenFourAnswers() {
+        return state.answersOrder &amp;&amp; state.answersOrder.length &lt; 4;
+    }
+
+    function getHintButtonTextVoiceObject() {
+        var voicesArray = [];
+        var texts = [presenter.speechTexts.HintButton, ];
+        if (state.hintUsed || isQuestionAnswered()) {
+            texts.push(presenter.speechTexts.Inactive);
+        }
+        pushMessagesToTextVoiceObject(voicesArray, texts);
+        return voicesArray;
+    }
+
+    function getNextQuestionTextVoiceObject($element) {
+        var voicesArray = [];
+
+        const text = presenter.config.nextLabel;
+        pushMessageToTextVoiceObject(voicesArray, text, true);
+
+        if (!$element.hasClass(CSS_CLASSES.ACTIVE))
+            pushMessageToTextVoiceObject(voicesArray, presenter.speechTexts.Inactive);
+
+        return voicesArray;
+    }
+    
+    function getCommentFieldTextVoiceObject($element) {
+        var voicesArray = [];
+
+        const commentField = presenter.speechTexts.CommentField;
+        pushMessageToTextVoiceObject(voicesArray, commentField);
+
+        if ($element.children().length === 0)
+            return updateCommentFieldTextVoiceObjectWithInactive(voicesArray);
+
+        const $gameMessage = $(presenter.getGameMessageElementForKeyboardNavigationFromElement($element));
+        if ($gameMessage.length === 0)
+            return updateCommentFieldTextVoiceObjectWithHint(voicesArray, $element);
+        return updateCommentFieldTextVoiceObjectWithSummary(voicesArray, $gameMessage);
+    }
+
+    function updateCommentFieldTextVoiceObjectWithInactive(textVoiceObject) {
+        var voicesArray = [];
+        const inactiveMessage = presenter.speechTexts.Inactive;
+        pushMessageToTextVoiceObject(voicesArray, inactiveMessage);
+        return textVoiceObject.concat(voicesArray);
+    }
+
+    function updateCommentFieldTextVoiceObjectWithSummary(
+            textVoiceObject, $gameMessageElement) {
+        var voicesArray = [];
+        const summaryMessage = presenter.speechTexts.Summary;
+        pushMessageToTextVoiceObject(voicesArray, summaryMessage);
+
+        const $gameMessageChildren = $gameMessageElement.children();
+        
+        var $gameMessageText = null;
+        var gameSummaryChildID = 1;
+        if ($gameMessageChildren.length === 2) {
+            $gameMessageText = $($gameMessageChildren.get(0));
+        } else {
+            $gameMessageText = getTextNodeFromElement($gameMessageElement);
+            gameSummaryChildID = 0;
+        }
+        voicesArray = createAndConcatElementWithTextVoiceObject(
+            voicesArray, $gameMessageText);
+        const $gameSummary = $($gameMessageChildren.get(gameSummaryChildID));
+        
+        const $gameSummaryText = getTextNodeFromElement($gameSummary);
+        voicesArray = createAndConcatElementWithTextVoiceObject(
+            voicesArray, $gameSummaryText);
+
+        voicesArray = createAndConcatElementsWithTextVoiceObject(
+            voicesArray, $gameSummary.children());
+
+        return textVoiceObject.concat(voicesArray);
+    }
+
+    function updateCommentFieldTextVoiceObjectWithHint(
+            textVoiceObject, $commendFieldElement) {
+        var voicesArray = [];
+
+        const hintMessage = presenter.speechTexts.Hint;
+        pushMessageToTextVoiceObject(voicesArray, hintMessage);
+
+        voicesArray = createAndConcatElementWithTextVoiceObject(
+            voicesArray, $commendFieldElement);
+        return textVoiceObject.concat(voicesArray);
+    }
+
+    QuizKeyboardController.prototype.enter = function (event) {
+        KeyboardController.prototype.enter.call(this, event);
+        this.readCurrentElement();
+    };
+
+    QuizKeyboardController.prototype.select = function (event) {
+        var currentElement = this.keyboardNavigationCurrentElement;
+        var $element = this.getTarget(currentElement, false);
+        
+        if ($element.hasClass(CSS_CLASSES.QUESTION_TIP))
+            selectQuestionTip(event, $element);
+        else if ($element.hasClass(CSS_CLASSES.FIFTY_FIFTY))
+            selectFiftyFiftyButton(event);
+        else if ($element.hasClass(CSS_CLASSES.HINT_BUTTON))
+            selectHintButton(event);
+        else KeyboardController.prototype.select.call(this, event);
+    };
+
+    function selectQuestionTip(event, $element) {
+        const isQuestionAnsweredBefore = isQuestionAnswered(); 
+        KeyboardController.prototype.select.call(presenter.keyboardControllerObject, event);
+        const isQuestionAnsweredAfter = isQuestionAnswered();
+
+        if (isQuestionAnsweredBefore !== isQuestionAnsweredAfter) {
+            var voicesArray = updateQuestionTipTextVoiceObjectWithSelected([], $element);
+            const $gameMessage = presenter.getGameMessageElementForKeyboardNavigationFromElement(presenter.$view);
+            if ($gameMessage.length !== 0) {
+                voicesArray = updateCommentFieldTextVoiceObjectWithSummary(voicesArray, $gameMessage);
+            }
+            
+            if (!isLastQuestion() 
+                &amp;&amp; presenter.config.nextAfterSelect 
+                &amp;&amp; presenter.isWCAGOn) {
+                presenter.speakWithCallback(
+                    voicesArray, nextAfterSelectCallback);
+            } else {
+                presenter.speak(voicesArray);
+            }
+        }
+    }
+
+    function isQuestionAnswered() {
+        return state.selectedAnswer !== null;
+    }
+
+    function selectFiftyFiftyButton(event) {
+        const fiftyFiftyUsedBefore = state.fiftyFiftyUsed;
+        KeyboardController.prototype.select.call(presenter.keyboardControllerObject, event);
+        const fiftyFiftyUsedAfter = state.fiftyFiftyUsed;
+
+        if (fiftyFiftyUsedBefore !== fiftyFiftyUsedAfter) {
+            var voicesArray = [];
+            const selectedMessage = presenter.speechTexts.Selected;
+            pushMessageToTextVoiceObject(voicesArray, selectedMessage);
+            const $questionTips = $(presenter.getQuestionTipsElementsForKeyboardNavigation());
+            for (var i = 0; i &lt; state.answersOrder.length; i++) {
+                if (state.answersOrder[i] === null) {
+                    const $questionTip = $($questionTips.get(i));
+                    voicesArray = voicesArray.concat(getQuestionTipTextVoiceObject($questionTip));
+                }
+            }
+            presenter.speak(voicesArray);
+            presenter.keyboardControllerObject.refreshMarkOnCurrentElement();
+        }
+    }
+
+    function selectHintButton(event) {
+        const hintUsedBefore = state.hintUsed;
+        KeyboardController.prototype.select.call(presenter.keyboardControllerObject, event);
+        const hintUsedAfter = state.hintUsed;
+
+        if (hintUsedBefore !== hintUsedAfter) {
+            var voicesArray = [];
+            const selectedMessage = presenter.speechTexts.Selected;
+            pushMessageToTextVoiceObject(voicesArray, selectedMessage);
+
+            const $commendFieldElement = $(presenter.getCommendFieldElementForKeyboardNavigation());
+            voicesArray = updateCommentFieldTextVoiceObjectWithHint(voicesArray, $commendFieldElement);
+            presenter.speak(voicesArray);
+        }
+    }
+
+    function getTextNodeFromElement($element) {
+        return $element.contents().filter(
+            function () {
+                return this.nodeType === 3;
+            }
+        )
+    }
+
+    function createAndConcatElementsWithTextVoiceObject(textVoiceObject, $elements, usePresenterLangTag = true) {
+        $elements.each( function() { 
+            textVoiceObject = createAndConcatElementWithTextVoiceObject(textVoiceObject, $(this), usePresenterLangTag);
+        });
+        return textVoiceObject;
+    }
+
+    function createAndConcatElementWithTextVoiceObject(textVoiceObject, $element, usePresenterLangTag = true) {
+        var elementTextVoiceArray = null;
+        if (usePresenterLangTag)
+            elementTextVoiceArray = window.TTSUtils.getTextVoiceArrayFromElement($element, presenter.config.langTag)
+        else
+            elementTextVoiceArray = window.TTSUtils.getTextVoiceArrayFromElement($element)
+        return textVoiceObject.concat(elementTextVoiceArray);
+    }
+
+    function pushMessagesToTextVoiceObject(textVoiceObject, messages, usePresenterLangTag = false) {
+        for (var i = 0; i &lt; messages.length; i++) {
+            pushMessageToTextVoiceObject(textVoiceObject, messages[i], usePresenterLangTag);
+        }
+    }
+    
+    function pushMessageToTextVoiceObject(textVoiceObject, message, usePresenterLangTag = false) {
+        if (usePresenterLangTag)
+            textVoiceObject.push(window.TTSUtils.getTextVoiceObject(message, presenter.config.langTag));
+        else
+            textVoiceObject.push(window.TTSUtils.getTextVoiceObject(message));
+    }
+
+    return presenter;
+}
+</presenter></addon>

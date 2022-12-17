@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><addon id="Page_Name">
+	<model>
+		<property name="printable" nameLabel="printable_name_label" type="{No, Don't randomize, Randomize}"/>
+	</model>
+<css>.pagename {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    padding: 1px;
+    color: #7C818E;
+    font-size: 25px;
+    direction: inherit;
+}
+
+.printable_pagename_wrapper {
+    text-align: center;
+    font-size: 25px;
+}
+</css><view>&lt;div class="pagename"&gt;
+&lt;/div&gt;
+</view><preview>&lt;div class="pagename"&gt;
+&lt;/div&gt;
+</preview><presenter>function AddonPage_Name_create() {
+    var presenter = function () {};
+    var presentationController;
+    var printableController;
+
+    function presenterLogic(view, name) {
+        var nameElement = $(view).find('.pagename')[0];
+
+        $(nameElement).text(name);
+    }
+
+    presenter.createPreview = function (view, model) {
+        presenterLogic(view, "Page Name");
+    };
+
+    presenter.getPageName = function () {
+        var presentation = presentationController.getPresentation();
+        var currentPage = presentationController.getCurrentPageIndex();
+
+        return presentation.getPage(currentPage).getName();
+    };
+
+
+    presenter.run = function (view, model) {
+        var pageName = this.getPageName();
+
+        presenterLogic(view, pageName);
+    };
+
+    presenter.setPlayerController = function(controller) {
+        presentationController = controller;
+    };
+
+    presenter.setPrintableController = function (controller) {
+        printableController = controller;
+    };
+
+    presenter.getPrintableHTML = function (model, showAnswers) {
+        var $view = $("&lt;div&gt;&lt;/div&gt;");
+        $view.attr("id", model.ID);
+        $view.addClass("printable_addon_pagename");
+
+        var $wrapper = $("&lt;div&gt;&lt;/div&gt;");
+        $wrapper.addClass("printable_pagename_wrapper");
+        $wrapper.html(printableController.getPageName());
+
+        
+        $view.append($wrapper);
+        return $view[0].outerHTML;
+    }
+
+    return presenter;
+}
+</presenter></addon>

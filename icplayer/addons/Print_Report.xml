@@ -1,0 +1,893 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><addon xmlns="http://icplayer.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Print_Report" xsi:schemaLocation="http://icplayer.com ../../tools/addon.xsd">
+    <model>
+        <property displayName="Text" isLocalized="true" name="Text" nameLabel="Print_Report_property_text" type="string"/>
+        <property displayName="Print Report Label" isLocalized="true" name="PrintReportLabel" nameLabel="Print_Report_property_print_report_label" type="string"/>
+        <property displayName="Close Report Label" isLocalized="true" name="CloseReportLabel" nameLabel="Print_Report_property_close_report_label" type="string"/>
+        <property displayName="Show Export Button" name="ShowExportButton" nameLabel="Print_Report_property_show_export_button" type="boolean"/>
+        <property displayName="Export Button Label" isLocalized="true" name="ExportCsvLabel" nameLabel="Print_Report_property_export_csv_label" type="string"/>
+        <property displayName="Title" name="Title" nameLabel="Print_Report_property_title" type="boolean"/>
+        <property displayName="Title Label" isLocalized="true" name="TitleLabel" nameLabel="Print_Report_property_title_label" type="string"/>
+        <property displayName="Show subtitle" name="Subtitle" nameLabel="Print_Report_property_subtitle" type="boolean"/>
+        <property displayName="Subtitle" isLocalized="true" name="SubtitleLabel" nameLabel="Print_Report_property_subtitle_label" type="string"/>
+        <property displayName="Show User First And Last Name" name="Username" nameLabel="Print_Report_property_username" type="boolean"/>
+        <property displayName="Percentage Score" name="PercentageScore" nameLabel="Print_Report_property_percentage_score" type="boolean"/>
+        <property displayName="Percentage Score Label" isLocalized="true" name="PercentageScoreLabel" nameLabel="Print_Report_property_percentage_score_label" type="string"/>
+        <property displayName="Checks" name="Checks" nameLabel="Print_Report_property_checks" type="boolean"/>
+        <property displayName="Checks Label" isLocalized="true" name="ChecksLabel" nameLabel="Print_Report_property_checks_label" type="string"/>
+        <property displayName="Mistakes" name="Mistakes" nameLabel="Print_Report_property_mistakes" type="boolean"/>
+        <property displayName="Mistakes Label" isLocalized="true" name="MistakesLabel" nameLabel="Print_Report_property_mistakes_label" type="string"/>
+        <property displayName="Errors" name="Errors" nameLabel="Print_Report_property_errors" type="boolean"/>
+        <property displayName="Errors Label" isLocalized="true" name="ErrorsLabel" nameLabel="Print_Report_property_errors_label" type="string"/>
+        <property displayName="Page Score" name="PageScore" nameLabel="Print_Report_property_page_score" type="boolean"/>
+        <property displayName="Page Score Label" isLocalized="true" name="PageScoreLabel" nameLabel="Print_Report_property_page_score_label" type="string"/>
+        <property displayName="Time Per Page" name="TimePerPage" nameLabel="Print_Report_property_time_per_page" type="boolean"/>
+        <property displayName="Time Per Page Label" isLocalized="true" name="TimePerPageLabel" nameLabel="Print_Report_property_time_per_page_label" type="string"/>
+        <property displayName="Show Total Results" name="Total" nameLabel="Print_Report_property_total" type="boolean"/>
+        <property displayName="Total Results Label" isLocalized="true" name="TotalLabel" nameLabel="Print_Report_property_total_label" type="string"/>
+        <property displayName="Show Current Date" name="Date" nameLabel="Print_Report_property_date" type="boolean"/>
+        <property displayName="Date Format" isLocalized="true" name="DateLabel" nameLabel="Print_Report_property_date_label" type="{dd-mm-yy, mm-dd-yy, yy-mm-dd, dd/mm/yy, mm/dd/yy, yy/mm/dd}"/>
+        <property displayName="Time Per Page: Days Label" isLocalized="true" name="TimePerPageDaysLabel" nameLabel="Print_Report_property_time_per_page_days_label" type="string"/>
+        <property displayName="Time Per Page: Hours Label" isLocalized="true" name="TimePerPageHoursLabel" nameLabel="Print_Report_property_time_per_page_hours_label" type="string"/>
+        <property displayName="Time Per Page: Minutes Label" isLocalized="true" name="TimePerPageMinutesLabel" nameLabel="Print_Report_property_time_per_page_minutes_label" type="string"/>
+        <property displayName="Time Per Page: Seconds Label" isLocalized="true" name="TimePerPageSecondsLabel" nameLabel="Print_Report_property_time_per_page_seconds_label" type="string"/>
+        <property displayName="User Form: First Name Label" isLocalized="true" name="UsernameFirstLabel" nameLabel="Print_Report_property_username_first_label" type="string"/>
+        <property displayName="User Form: Last Name Label" isLocalized="true" name="UsernameLastLabel" nameLabel="Print_Report_property_username_last_label" type="string"/>
+        <property displayName="User Form: Confirm Label" isLocalized="true" name="UsernameConfirmLabel" nameLabel="Print_Report_property_username_confirm_label" type="string"/>
+        <property displayName="User Form: Cancel Label" isLocalized="true" name="UsernameCancelLabel" nameLabel="Print_Report_property_username_cancel_label" type="string"/>
+        <property displayName="Styles" name="Styles" nameLabel="Print_Report_property_styles" type="text"/>
+    </model>
+<css>.print-report-addon-wrapper {
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.print-report-popup {
+    position: absolute;
+    z-index: 9999;
+    background: rgba(0,0,0,0.5);
+    color: #000000;
+}
+
+.print-report-popup .print-report-form {
+    display: table;
+    padding: 15px;
+    margin: 10px auto 0 auto;
+    background: #ffffff;
+}
+
+.print-report-popup .print-report-form label,
+.print-report-popup .print-report-form input {
+    display: block;
+}
+
+.print-report-popup .print-report-form label {
+    margin: 5px 0;
+}
+
+.print-report-popup .print-report-form input {
+    height: 34px;
+    width: 100%;
+    min-width: 300px;
+    padding: 6px 12px;
+    border: 1px solid #cccccc;
+    box-sizing: border-box;
+    display: block;
+    font-size: 14px;
+    line-height: 1.42857143;
+    border-radius: 6px;
+    color: #555;
+    background-color: #ffffff;
+    background-image: none;
+}
+
+.print-report-popup .print-report-form .print-report-form-actions {
+    text-align: center;
+}
+
+.print-report-popup .print-report-form .print-report-form-actions button {
+    display: inline-block;
+    padding: 6px 12px;
+    margin: 5px 5px 0 5px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    background-image: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.print-report-popup .print-report-form button.print-report-form-confirm-btn {
+    background: #0000ff;
+    color: #ffffff;
+}
+
+.print-report-popup .print-report-form button.export-report-form-confirm-btn {
+    background: #0000ff;
+    color: #ffffff;
+}
+
+.print-report-popup .print-report-form button.print-report-form-cancel-btn {
+    background: #ff0000;
+    color: #ffffff;
+}
+
+.export-button {
+    width: 100%;
+}
+</css><view/><preview/><presenter>function AddonPrint_Report_create(){
+    var presenter = function AddonPrint_Report_presenter () {};
+
+    presenter.logic = function addonPrint_Report_logic (view, model, preview) {
+        presenter.configuration = presenter.validateModel(model);
+        presenter.$body = $('body');
+        presenter.$view = $(view);
+        presenter.$page = $('.ic_page');
+        presenter.$wrapper = $('&lt;div&gt;&lt;/div&gt;').addClass('print-report-addon-wrapper').text(presenter.configuration.text);
+        presenter.$exportButton = $('&lt;button&gt;&lt;/button&gt;').addClass('export-button').text(presenter.configuration.labels.exportCsvReport);
+        presenter.$view.append(presenter.$exportButton);
+        presenter.$view.append(presenter.$wrapper);
+
+        if(!presenter.configuration.report.showExportButton){
+            presenter.$exportButton.hide();
+        }
+
+        presenter.originalViewStyles = presenter.$view.attr('style');
+        presenter.originalViewClasses = presenter.$view.attr('class');
+
+        presenter.user = {
+            'firstName': '',
+            'lastName': ''
+        };
+
+        if (!preview) {
+            presenter.$wrapper.click(presenter.clickAction);
+            presenter.$popup = presenter.createPopup();
+            presenter.$view.append(presenter.$popup);
+            presenter.$popup.hide();
+            presenter.bindPopupEvents();
+            presenter.$exportButton.on("click", function () {
+                presenter.showPopup(true);
+            });
+        }
+    };
+
+    presenter.exportButtonClickAction = function () {
+        var data = presenter.getPagesData(),
+            name = presenter.user.firstName || '',
+            lastName = presenter.user.lastName || '',
+            date = presenter.prepareDate(presenter.configuration.labels.date),
+            firstNameLabel = presenter.configuration.labels.userFirstName,
+            lastNameLabel = presenter.configuration.labels.userLastName,
+            scoreLabel = presenter.configuration.labels.pageScore || "Score",
+            errorsLabel = presenter.configuration.labels.errors || "Errors";
+
+            var blob = new Blob([firstNameLabel+ ": " + name + ", " + lastNameLabel + ": " + lastName + ", " + scoreLabel + ": " + data.total.score + "/" + data.total.maxScore + ", " + errorsLabel + ": " + data.total.errors + ", " + date], {type: "text/plain;charset=utf-8"});
+            saveAs(blob, "report.txt");
+    };
+
+    presenter.clickAction = function addonPrint_Report_clickAction () {
+        if (presenter.configuration.report.username) {
+            presenter.showPopup(false);
+        } else {
+            presenter.showReport();
+        }
+    };
+
+    presenter.getPagesData = function addonPrint_Report_getPagesData () {
+        var data = {}, page, total;
+
+        for(var i = 0; i &lt; presenter.pageCount; i += 1) {
+            page = presenter.presentation.getPage(i);
+            if (page.isReportable()) {
+                data[i + 1] = presenter.getPageData(page);
+            }
+        }
+        page = null;
+
+        total = presenter.calculateTotal(data);
+
+        return {
+            pages: data,
+            total: total
+        };
+    };
+
+    presenter.getPageData = function addonPrint_Report_getPageData (page) {
+        var id = page.getId(),
+            score = presenter.scoreService.getPageScoreById(id),
+            time = presenter.timeService.getPageTimeById(id),
+            percentageScore;
+
+        if (score.score === 0 &amp;&amp; score.maxScore === 0) {
+            if (page.isVisited()) {
+                percentageScore = 100;
+            } else {
+                percentageScore = 0;
+            }
+        } else {
+            percentageScore = parseInt(Math.floor( (score.score / score.maxScore) * 100 ));
+        }
+
+        return {
+            'name': page.getName(),
+            'score': score.score,
+            'maxScore': score.maxScore,
+            'percentageScore': percentageScore,
+            'mistakes': score.mistakeCount,
+            'errors': score.errorCount,
+            'checks': score.checkCount,
+            'time': parseInt(time),
+            'visited': page.isVisited()
+        };
+    };
+
+    presenter.calculateTotal = function addonPrint_Report_calculateTotal (data) {
+        var count = 0, total = {
+            'score': 0,
+            'maxScore': 0,
+            'percentageScore': 0,
+            'mistakes': 0,
+            'errors': 0,
+            'checks': 0,
+            'time': 0
+        };
+
+        $.each(data, function AddonPrint_Report_calculateTotalEach (_, page) {
+            count += 1;
+            total.score += page.score;
+            total.maxScore += page.maxScore;
+            total.percentageScore += page.percentageScore;
+            total.mistakes += page.mistakes;
+            total.errors += page.errors;
+            total.checks += page.checks;
+            total.time += page.time;
+        });
+
+        total.percentageScore = parseInt(Math.floor( total.percentageScore / count ));
+        return total;
+    };
+
+    presenter.createPopup = function addonPrint_Report_createPopup () {
+        var $popup = $('&lt;div&gt;&lt;/div&gt;').
+                addClass('print-report-popup'),
+            $form = $('&lt;div&gt;&lt;/div&gt;').
+                addClass('print-report-form'),
+            $firstNameLabel = $('&lt;label&gt;&lt;/label&gt;').
+                addClass('print-report-form-firstname-label').
+                text(presenter.configuration.labels.userFirstName),
+            $firstName = $('&lt;input&gt;').
+                attr('type', 'text').
+                attr('value', presenter.user.firstName).
+                addClass('print-report-form-firstname'),
+            $lastNameLabel = $('&lt;label&gt;&lt;/label&gt;').
+                addClass('print-report-form-lastname-label').
+                text(presenter.configuration.labels.userLastName),
+            $lastName = $('&lt;input&gt;').
+                attr('type', 'text').
+                attr('value', presenter.user.lastName).
+                addClass('print-report-form-lastname'),
+            $confirmBtn = $('&lt;button&gt;&lt;/button&gt;').
+                addClass('print-report-form-confirm-btn').
+                text(presenter.configuration.labels.userConfirm),
+            $exportBtn = $('&lt;button&gt;&lt;/button&gt;').
+                addClass('export-report-form-confirm-btn').
+                text(presenter.configuration.labels.exportCsvReport),
+            $cancelBtn = $('&lt;button&gt;&lt;/button&gt;').
+                addClass('print-report-form-cancel-btn').
+                text(presenter.configuration.labels.userCancel);
+
+        $form.append(
+                $('&lt;div&gt;&lt;/div&gt;').
+                    addClass('print-report-form-firstname-wrapper').
+                    append($firstNameLabel).
+                    append($firstName)
+            ).
+            append(
+                $('&lt;div&gt;&lt;/div&gt;').
+                    addClass('print-report-form-lastname-wrapper').
+                    append($lastNameLabel).
+                    append($lastName)
+            ).
+            append(
+                $('&lt;div&gt;&lt;/div&gt;').
+                    addClass('print-report-form-actions').
+                    append($cancelBtn).
+                    append($confirmBtn).
+                    append($exportBtn)
+            );
+
+        $popup.css({
+            width: presenter.$page.width() + 'px',
+            height: presenter.$page.height() + 'px'
+        });
+
+        $popup.append($form);
+
+        return $popup;
+    };
+
+    presenter.bindPopupEvents = function addonPrint_Report_bindPopupEvents () {
+        presenter.$popup.on('click', '.print-report-form-confirm-btn', function addonPrint_Report_onConfirmClick (event) {
+            event.preventDefault();
+            presenter.hidePopup();
+            presenter.showReport();
+        });
+
+        presenter.$popup.on('click', '.export-report-form-confirm-btn', function addonPrint_Report_onConfirmClick (event) {
+            event.preventDefault();
+            presenter.hidePopup();
+            presenter.exportButtonClickAction();
+        });
+
+        presenter.$popup.on('click', '.print-report-form-cancel-btn', function addonPrint_Report_onCancelClick (event) {
+            event.preventDefault();
+            presenter.hidePopup();
+        });
+
+        presenter.$popup.on('input', '.print-report-form-firstname', function addonPrint_Report_onFirstNameInput () {
+            presenter.user.firstName = $(this).val();
+        });
+
+        presenter.$popup.on('input', '.print-report-form-lastname', function addonPrint_Report_onLastNameInput () {
+            presenter.user.lastName = $(this).val();
+        });
+    };
+
+    presenter.unbindPopupEvents = function addonPrint_Report_unbindPopupEvents () {
+        presenter.$popup.off();
+    };
+
+    presenter.showPopup = function AddonPrint_Report_showPopup (exportButtonClicked) {
+        if(exportButtonClicked){
+            presenter.$popup.find('.print-report-form-confirm-btn').hide();
+        }else{
+            presenter.$popup.find('.export-report-form-confirm-btn').hide();
+        }
+
+        var $firstName = presenter.$popup.find('.print-report-form-firstname'),
+            $lastName = presenter.$popup.find('.print-report-form-lastname');
+
+        $firstName.attr('value', presenter.user.firstName);
+        $lastName.attr('value', presenter.user.lastName);
+
+        $firstName = null;
+        $lastName = null;
+
+        presenter.$wrapper.hide();
+        presenter.$exportButton.hide();
+
+        presenter.$view.
+            removeAttr('style class').
+            css({
+                'width': presenter.$page.width() + 'px',
+                'height': presenter.$page.height() + 'px',
+                'z-index': 9999
+            });
+
+        presenter.$popup.show();
+        presenter.$body.animate({scrollTop: presenter.$popup.offset().top}, 'fast', 'swing');
+    };
+
+    presenter.hidePopup = function AddonPrint_Report_hidePopup () {
+        presenter.$popup.hide();
+
+        presenter.$view.
+            removeAttr('style class').
+            attr('style', presenter.originalViewStyles).
+            attr('class', presenter.originalViewClasses);
+
+        presenter.$popup.find('.print-report-form-confirm-btn').show();
+        presenter.$popup.find('.export-report-form-confirm-btn').show();
+        presenter.$wrapper.show();
+        if(presenter.configuration.report.showExportButton){
+            presenter.$exportButton.show();
+        }
+    };
+
+    presenter.showReport = function addonPrint_Report_showReport () {
+        var data = presenter.getPagesData(),
+            $reportHtml = presenter.prepareReportHtml(data),
+            reportWindow = window.open();
+
+        $(reportWindow.document).ready(function addonPrint_Report_onReportWindowReady () {
+            $(reportWindow.document.body).html($reportHtml);
+            reportWindow = null;
+            $reportHtml = null;
+        });
+    };
+
+    presenter.prepareReportHtml = function addonPrint_Report_prepareReportHtml (data) {
+        var $reportWrapper = $('&lt;section&gt;&lt;/section&gt;').addClass('wrapper'),
+            $reportDefaultStyles = $('&lt;style&gt;&lt;/style&gt;'),
+            $reportStyles = $('&lt;style&gt;&lt;/style&gt;').text(presenter.configuration.styles),
+            $reportActions = presenter.prepareReportActionsHtml(),
+            $reportHeader = presenter.prepareReportHeaderHtml(),
+            $reportTable = presenter.prepareReportTableHtml(data);
+
+        $reportDefaultStyles.text(
+            '@media print and (color) { * { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }' +
+            'body { width: 210mm; margin: 0 auto; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;' +
+                'font-size: 14px; line-height: 20px; color: #333333; padding: 0; }' +
+            'h1, h2 { line-height: 40px; margin: 0; }' +
+            'h1 { font-size: 38.5px; }' +
+            'h2 { font-size: 31.5px; }' +
+            'table { width: 100%; max-width: 100%; border-collapse: collapse; border-spacing: 0; ' +
+            'background-color: transparent; }' +
+            'table th, table td { padding: 8px; line-height: 20px; text-align: left; vertical-align: top; }' +
+            'table td { border-top: 1px solid #dddddd; }' +
+            'table tbody &gt; tr:nth-child(odd) td { background: #f9f9f9; }' +
+            '.percentage-score-label, .percentage-score { color: blue; }' +
+            '.checks-label, .checks { color: green; }' +
+            '.mistakes-label, .mistakes { color: brown; }' +
+            '.errors-label, .errors { color: red; }' +
+            '.page-score-label, .page-score { color: blue; font-weight: bold; }' +
+            '.total td { border-top: 3px solid #dddddd; font-weight: bold; }' +
+            '.actions { border: 1px solid #ccc; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; ' +
+                'border-top-width: 0; margin-bottom: 10px; overflow: auto; background: #fff; }' +
+            '.actions button { display: inline-block; padding: 6px 12px; margin: 5px; font-size: 14px;' +
+                'font-weight: bold; line-height: 1.42857143; text-align: center; white-space: nowrap;' +
+                'vertical-align: middle; background-image: none; border: 1px solid transparent; border-radius: 4px;' +
+                'cursor: pointer; }' +
+            '.actions button.close { background: #ff0000; color: #ffffff; float: left; }' +
+            '.actions button.print { background: #0000ff; color: #ffffff; float: right; }' +
+            '@media print { body { width: 100% } .actions { display: none; } }'
+        );
+
+        $reportWrapper.append($reportDefaultStyles);
+        $reportWrapper.append($reportStyles);
+        $reportWrapper.append($reportActions);
+        $reportWrapper.append($reportHeader);
+        $reportWrapper.append($reportTable);
+
+        return $reportWrapper;
+    };
+
+    presenter.prepareReportActionsHtml = function addonPrint_Report_prepareReportActionsHtml () {
+        var $actions = $('&lt;div&gt;&lt;/div&gt;').addClass('actions');
+
+        $actions.append(
+            $('&lt;button&gt;&lt;/button&gt;').
+                addClass('close').
+                text(presenter.configuration.labels.closeReport).
+                attr('onclick', 'javascript:window.close()')
+        ).
+        append(
+            $('&lt;button&gt;&lt;/button&gt;').
+                addClass('print').
+                text(presenter.configuration.labels.printReport).
+                attr('onclick', 'javascript:window.print()')
+        );
+
+        return $actions;
+    };
+
+    presenter.prepareMonthFormat = function addonPrint_Report_prepareMonthFormat (month) {
+        if(month.toString().length &lt; 2){
+            return "0" + month;
+        }
+
+        return month;
+    };
+
+    presenter.prepareYearFormat = function addonPrint_Report_prepareYearFormat (year) {
+        return year.toString().substring(2);
+    };
+
+    presenter.prepareDate = function addonPrint_Report_prepareDate (format) {
+        var date = new Date(),
+            day = date.getDate(),
+            month = presenter.prepareMonthFormat(date.getMonth()+1),
+            year = presenter.prepareYearFormat(date.getFullYear());
+
+
+        switch(format) {
+            case "dd-mm-yy":
+                return day + "-" + month + "-" + year;
+                break;
+            case "mm-dd-yy":
+                return month + "-" + day + "-" + year;
+                break;
+            case "yy-mm-dd":
+                return year + "-" + month + "-" + day;
+                break;
+            case "dd/mm/yy":
+                return day + "/" + month + "/" + year;
+                break;
+            case "mm/dd/yy":
+                return month + "/" + day + "/" + year;
+                break;
+            case "yy/mm/dd":
+                return year + "/" + month + "/" + day;
+                break;
+            default:
+                return day + "-" + month + "-" + year;
+        }
+    };
+
+    presenter.prepareReportHeaderHtml = function addonPrint_Report_prepareReportHeaderHtml () {
+        var $header = $('&lt;div&gt;&lt;/div&gt;').addClass('header');
+
+        if (presenter.configuration.report.title) {
+            $header.append(
+                $('&lt;div&gt;&lt;/div&gt;').addClass('title').append(
+                    $('&lt;h1&gt;&lt;/h1&gt;').text(presenter.configuration.labels.title)
+                )
+            );
+        }
+
+        if (presenter.configuration.report.subtitle) {
+            $header.append(
+                $('&lt;div&gt;&lt;/div&gt;').addClass('subtitle').append(
+                    $('&lt;h2&gt;&lt;/h2&gt;').text(presenter.configuration.labels.subtitle)
+                )
+            );
+        }
+
+        if(presenter.configuration.report.date) {
+            $header.append(
+                $('&lt;div&gt;&lt;/div&gt;').addClass('date').append(
+                    $('&lt;h2&gt;&lt;/h2&gt;').text(presenter.prepareDate(presenter.configuration.labels.date))
+                )
+            )
+        }
+
+        if (presenter.configuration.report.username) {
+            $header.append(
+                $('&lt;div&gt;&lt;/div&gt;').addClass('user').append(
+                        $('&lt;span&gt;&lt;/span&gt;').addClass('firstname').text(presenter.user.firstName || '')
+                    ).
+                    append(' ').
+                    append(
+                        $('&lt;span&gt;&lt;/span&gt;').addClass('lastname').text(presenter.user.lastName || '')
+                    )
+            );
+        }
+
+        return $header;
+    };
+
+    presenter.prepareReportTableHtml = function addonPrint_Report_prepareReportTableHtml (data) {
+        var $report = $('&lt;div&gt;&lt;/div&gt;').addClass('report'),
+            $table = $('&lt;table&gt;&lt;/table&gt;'),
+            $header = presenter.prepareReportTableHeaderHtml(),
+            $body = presenter.prepareReportTableBodyHtml(data.pages, data.total);
+
+        $table.append($header).append($body);
+        $report.append($table);
+
+        return $report;
+    };
+
+    presenter.prepareReportTableHeaderHtml = function addonPrint_Report_prepareReportTableHeaderHtml () {
+        var $header = $('&lt;thead&gt;&lt;/thead&gt;'),
+            $row = $('&lt;tr&gt;&lt;/tr&gt;');
+
+        $row.append(
+            $('&lt;th&gt;&lt;/th&gt;').addClass('name-label')
+        );
+
+        if (presenter.configuration.report.percentageScore) {
+            $row.append(
+                $('&lt;th&gt;&lt;/th&gt;').addClass('percentage-score-label').text(presenter.configuration.labels.percentageScore)
+            );
+        }
+
+        if (presenter.configuration.report.checks) {
+            $row.append(
+                $('&lt;th&gt;&lt;/th&gt;').addClass('checks-label').text(presenter.configuration.labels.checks)
+            );
+        }
+
+        if (presenter.configuration.report.mistakes) {
+            $row.append(
+                $('&lt;th&gt;&lt;/th&gt;').addClass('mistakes-label').text(presenter.configuration.labels.mistakes)
+            );
+        }
+
+        if (presenter.configuration.report.errors) {
+            $row.append(
+                $('&lt;th&gt;&lt;/th&gt;').addClass('errors-label').text(presenter.configuration.labels.errors)
+            );
+        }
+
+        if (presenter.configuration.report.pageScore) {
+            $row.append(
+                $('&lt;th&gt;&lt;/th&gt;').addClass('page-score-label').text(presenter.configuration.labels.pageScore)
+            );
+        }
+
+        if (presenter.configuration.report.timePerPage) {
+            $row.append(
+                $('&lt;th&gt;&lt;/th&gt;').addClass('time-per-page-label').text(presenter.configuration.labels.timePerPage)
+            );
+        }
+
+        $header.append($row);
+        return $header;
+    };
+
+    presenter.prepareReportTableBodyHtml = function addonPrint_Report_prepareReportTableBodyHtml (pagesData, total) {
+        var $body = $('&lt;tbody&gt;&lt;/tbody&gt;');
+
+        $.each(pagesData, function AddonPrint_Report_prepareReportTableBodyHtmlEach (_, page) {
+            $body.append(
+                presenter.prepareReportTableBodyRowHtml(page)
+            );
+        });
+
+        if (presenter.configuration.report.total) {
+            total.name = presenter.configuration.labels.total;
+
+            $body.append(
+                presenter.prepareReportTableBodyRowHtml(total).addClass('total')
+            );
+        }
+
+        return $body;
+    };
+
+    presenter.prepareReportTableBodyRowHtml = function addonPrint_Report_prepareReportTableBodyRowHtml (pageData) {
+        var $row = $('&lt;tr&gt;&lt;/tr&gt;');
+
+        $row.append(
+            $('&lt;td&gt;&lt;/td&gt;').addClass('name').text(pageData.name)
+        );
+
+        if (presenter.configuration.report.percentageScore) {
+            $row.append(
+                $('&lt;td&gt;&lt;/td&gt;').addClass('percentage-score').text(pageData.percentageScore + '%')
+            );
+        }
+
+        if (presenter.configuration.report.checks) {
+            $row.append(
+                $('&lt;td&gt;&lt;/td&gt;').addClass('checks').text(pageData.checks)
+            );
+        }
+
+        if (presenter.configuration.report.mistakes) {
+            $row.append(
+                $('&lt;td&gt;&lt;/td&gt;').addClass('mistakes').text(pageData.mistakes)
+            );
+        }
+
+        if (presenter.configuration.report.errors) {
+            $row.append(
+                $('&lt;td&gt;&lt;/td&gt;').addClass('errors').text(pageData.errors)
+            );
+        }
+
+        if (presenter.configuration.report.pageScore) {
+            $row.append(
+                $('&lt;td&gt;&lt;/td&gt;').addClass('page-score').text(pageData.score + '/' + pageData.maxScore)
+            );
+        }
+
+        if (presenter.configuration.report.timePerPage) {
+            $row.append(
+                $('&lt;td&gt;&lt;/td&gt;').addClass('time-per-page').text(
+                    presenter.humanReadableTime(pageData.time,
+                        {
+                            days: presenter.configuration.labels.timePerPageDays,
+                            hours: presenter.configuration.labels.timePerPageHours,
+                            minutes: presenter.configuration.labels.timePerPageMinutes,
+                            seconds: presenter.configuration.labels.timePerPageSeconds
+                        })
+                )
+            );
+        }
+
+        return $row;
+    };
+
+    presenter.humanReadableTime = function addonPrint_Report_humanReadableTime (time, labels) {
+        var seconds, minutes,hours, days, output = '';
+
+        seconds = parseInt( Math.floor( time / 1000 ) );
+
+        minutes = parseInt( Math.floor( seconds / 60 ) );
+
+        if (minutes &gt; 0) {
+            seconds = seconds - (minutes * 60);
+        }
+
+        hours = parseInt( Math.floor( minutes / 60 ) );
+
+        if (hours &gt; 0) {
+            minutes = minutes - (hours * 60);
+        }
+
+        days = parseInt( Math.floor( hours / 24 ) );
+
+        if (days &gt; 0) {
+            hours = hours - (days * 24);
+        }
+
+        output = seconds + labels.seconds;
+
+        if (minutes &gt; 0) {
+            output = minutes + labels.minutes + ' ' + output;
+        }
+        if (hours &gt; 0) {
+            output = hours + labels.hours + ' ' + output;
+        }
+        if (days &gt; 0) {
+            output = days + labels.days + ' ' + output;
+        }
+
+        return output;
+    };
+
+    presenter.executeCommand = function addonPrint_Report_executeCommand (name) {
+        if (presenter.configuration.isErrorMode) return;
+
+        var commands = {
+            'show': presenter.show,
+            'hide': presenter.hide
+        };
+
+        Commands.dispatch(commands, name, [], presenter);
+    };
+
+    presenter.setVisibility =  function addonPrint_Report_setVisibility (isVisible) {
+        presenter.$view.css("visibility", isVisible ? "visible" : "hidden");
+    };
+
+    presenter.setPlayerController = function addonPrint_Report_setPlayerController (controller) {
+        presenter.playerController = controller;
+        presenter.presentation = controller.getPresentation();
+        presenter.pageCount = presenter.presentation.getPageCount();
+        presenter.scoreService = controller.getScore();
+        presenter.timeService = controller.getTimeService();
+    };
+
+    presenter.createPreview = function addonPrint_Report_createPreview (view, model) {
+        presenter.logic(view, model, true);
+    };
+
+    presenter.run = function addonPrint_run (view, model){
+        presenter.logic(view, model, false);
+
+        presenter.view = view;
+
+        presenter.view.addEventListener('DOMNodeRemoved', presenter.destroy);
+    };
+
+    presenter.destroy = function addonPrint_Report_destroy () {
+        presenter.view.removeEventListener('DOMNodeRemoved', presenter.destroy);
+        presenter.$wrapper.off();
+        presenter.$exportButton.off();
+        presenter.unbindPopupEvents();
+
+        presenter.user = null;
+        presenter.configuration = null;
+        presenter.originalViewStyles = null;
+        presenter.originalViewClasses = null;
+
+        presenter.playerController = null;
+        presenter.presentation = null;
+        presenter.pageCount = null;
+        presenter.scoreService = null;
+        presenter.timeService = null;
+
+        presenter.$popup = null;
+        presenter.$wrapper = null;
+        presenter.$page = null;
+        presenter.$view = null;
+        presenter.$body = null;
+        presenter.view = null;
+        presenter.$exportButton = null;
+
+        presenter.destroy = null;
+        presenter = null;
+    };
+
+    presenter.show = function addonPrint_Report_show () {
+        if (!presenter.configuration.isVisible) {
+            presenter.setVisibility(true);
+            presenter.configuration.isVisible = true;
+        }
+    };
+
+    presenter.hide = function addonPrint_Report_hide () {
+        if (presenter.configuration.isVisible) {
+            presenter.setVisibility(false);
+            presenter.configuration.isVisible = false;
+        }
+    };
+
+    presenter.reset = function addonPrint_Report_reset () {
+        presenter.hidePopup();
+        presenter.user.firstName = '';
+        presenter.user.lastName = '';
+        presenter.setVisibility(presenter.configuration.isVisibleByDefault);
+    };
+
+    presenter.getState = function addonPrint_Report_getState () {
+        return JSON.stringify({
+            isVisible: presenter.configuration.isVisible,
+            user: presenter.user
+        });
+    };
+
+    presenter.setState = function addonPrint_Report_setState (state) {
+        if (ModelValidationUtils.isStringEmpty(state)) {
+            return;
+        }
+
+        var parsedState = JSON.parse(state);
+
+        if (parsedState.isVisible) {
+            presenter.show();
+        } else {
+            presenter.hide();
+        }
+
+        if (parsedState.user) {
+            presenter.user.firstName = parsedState.user.firstName || '';
+            presenter.user.lastName = parsedState.user.lastName || '';
+        } else {
+            presenter.user.firstName = '';
+            presenter.user.lastName = '';
+        }
+    };
+
+    presenter.validateModel = function addonPrint_Report_validateModel (model) {
+        return {
+            'report': {
+                'title': ModelValidationUtils.validateBoolean(model.Title),
+                'subtitle': ModelValidationUtils.validateBoolean(model.Subtitle),
+                'username': ModelValidationUtils.validateBoolean(model.Username),
+                'percentageScore': ModelValidationUtils.validateBoolean(model.PercentageScore),
+                'checks': ModelValidationUtils.validateBoolean(model.Checks),
+                'mistakes': ModelValidationUtils.validateBoolean(model.Mistakes),
+                'errors': ModelValidationUtils.validateBoolean(model.Errors),
+                'pageScore': ModelValidationUtils.validateBoolean(model.PageScore),
+                'timePerPage': ModelValidationUtils.validateBoolean(model.TimePerPage),
+                'total': ModelValidationUtils.validateBoolean(model.Total),
+                'date': ModelValidationUtils.validateBoolean(model.Date),
+                'showExportButton': ModelValidationUtils.validateBoolean(model.ShowExportButton)
+            },
+            'labels': {
+                'title': model.TitleLabel,
+                'subtitle': model.SubtitleLabel,
+                'percentageScore': model.PercentageScoreLabel,
+                'checks': model.ChecksLabel,
+                'mistakes': model.MistakesLabel,
+                'errors': model.ErrorsLabel,
+                'pageScore': model.PageScoreLabel,
+                'timePerPage': model.TimePerPageLabel,
+                'total': model.TotalLabel,
+                'timePerPageDays': model.TimePerPageDaysLabel || 'd',
+                'timePerPageHours': model.TimePerPageHoursLabel || 'h',
+                'timePerPageMinutes': model.TimePerPageMinutesLabel || 'm',
+                'timePerPageSeconds': model.TimePerPageSecondsLabel || 's',
+                'userFirstName': model.UsernameFirstLabel || 'First name',
+                'userLastName': model.UsernameLastLabel || 'Last name',
+                'userConfirm': model.UsernameConfirmLabel || 'Generate',
+                'userCancel': model.UsernameCancelLabel || 'Cancel',
+                'closeReport': model.CloseReportLabel || 'Close',
+                'printReport': model.PrintReportLabel || 'Print',
+                'exportCsvReport': model.ExportCsvLabel || 'Export report',
+                'date': model.DateLabel
+
+            },
+            'styles': model.Styles,
+            'text': model.Text,
+            'isVisible': ModelValidationUtils.validateBoolean(model['Is Visible']),
+            'isVisibleByDefault': ModelValidationUtils.validateBoolean(model['Is Visible'])
+        };
+    };
+
+    presenter.setShowErrorsMode = function addonPrint_Report_setShowErrorsMode () {};
+
+    presenter.setWorkMode = function addonPrint_Report_setWorkMode () {};
+
+    return presenter;
+}
+</presenter></addon>

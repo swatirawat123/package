@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><addon id="Event_Sender">
+	<model>
+	</model>
+<css>.event-sender-table {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+}
+
+.event-sender-table-left {
+    width: 40%;
+    font-weight: bold;
+    border-right: 1px dotted black;
+}
+
+.event-sender-table th {
+    font-weight: bold;
+    border-bottom: 1px dotted black;
+}
+
+.event-sender-table button {
+    width: 80%;
+    border: 1px dotted black;
+}
+
+.event-sender-table select {
+    width: 95%;
+}
+</css><view>&lt;table class="event-sender-table"&gt;
+    &lt;tr&gt;
+        &lt;th class="event-sender-table-left"&gt;Field&lt;/th&gt;
+        &lt;th&gt;Value&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td class="event-sender-table-left"&gt;Type:&lt;/td&gt;
+        &lt;td&gt;
+            &lt;select id="type"&gt;
+                &lt;option value="ValueChanged" selected&gt;ValueChanged&lt;/option&gt;
+                &lt;option value="ItemConsumed"&gt;ItemConsumed&lt;/option&gt;
+                &lt;option value="ItemReturned"&gt;ItemReturned&lt;/option&gt;
+                &lt;option value="ItemSelected"&gt;ItemSelected&lt;/option&gt;
+                &lt;option value="Definition"&gt;Definition&lt;/option&gt;
+            &lt;/select&gt;
+        &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td class="event-sender-table-left"&gt;Source:&lt;/td&gt;
+        &lt;td&gt;&lt;input id="source"&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td class="event-sender-table-left"&gt;Item:&lt;/td&gt;
+        &lt;td&gt;&lt;input id="item"&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td class="event-sender-table-left"&gt;Value&lt;/td&gt;
+        &lt;td&gt;&lt;input id="value"&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td class="event-sender-table-left"&gt;Score&lt;/td&gt;
+        &lt;td&gt;&lt;input id="score"&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr class="send-button"&gt;
+        &lt;td colspan="2"&gt;&lt;button&gt;Send event&lt;/button&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/table&gt;
+</view><preview>&lt;table class="event-sender-table"&gt;
+    &lt;tr&gt;
+        &lt;th class="event-sender-table-left"&gt;Field&lt;/th&gt;
+        &lt;th&gt;Value&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td class="event-sender-table-left"&gt;Type:&lt;/td&gt;
+        &lt;td&gt;
+            &lt;select id="type"&gt;
+                &lt;option value="ValueChanged" selected&gt;ValueChanged&lt;/option&gt;
+                &lt;option value="ItemConsumed"&gt;ItemConsumed&lt;/option&gt;
+                &lt;option value="ItemReturned"&gt;ItemReturned&lt;/option&gt;
+                &lt;option value="ItemSelected"&gt;ItemSelected&lt;/option&gt;
+                &lt;option value="Definition"&gt;Definition&lt;/option&gt;
+            &lt;/select&gt;
+        &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td class="event-sender-table-left"&gt;Source:&lt;/td&gt;
+        &lt;td&gt;&lt;input id="source"&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td class="event-sender-table-left"&gt;Item:&lt;/td&gt;
+        &lt;td&gt;&lt;input id="item"&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td class="event-sender-table-left"&gt;Value&lt;/td&gt;
+        &lt;td&gt;&lt;input id="value"&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+        &lt;td class="event-sender-table-left"&gt;Score&lt;/td&gt;
+        &lt;td&gt;&lt;input id="score"&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr class="send-button"&gt;
+        &lt;td colspan="2"&gt;&lt;button&gt;Send event&lt;/button&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/table&gt;
+</preview><presenter>function AddonEvent_Sender_create() {
+    var presenter = function () {};
+    presenter.playerController = null;
+
+    presenter.setPlayerController = function(controller) {
+        presenter.playerController = controller;
+        presenter.eventBus = presenter.playerController.getEventBus();
+    };
+
+    presenter.run = function(view, model) {
+        $(view).find('.event-sender-table button').click(function() {
+            var eventData = {
+                    source: $(view).find('.event-sender-table #source').val(),
+                    item: $(view).find('.event-sender-table #item').val(),
+                    value: $(view).find('.event-sender-table #value').val(),
+                    score: $(view).find('.event-sender-table #score').val()
+                },
+                type = $(view).find('.event-sender-table #type').val();
+
+            presenter.eventBus.sendEvent(type, eventData);
+        });
+
+        $(view).find("input, select, button").click(function(e) {
+            e.stopPropagation();
+        });
+    };
+
+    return presenter;
+}
+</presenter></addon>

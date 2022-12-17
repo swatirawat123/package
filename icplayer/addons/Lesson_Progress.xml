@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><addon xmlns="http://icplayer.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Lesson_Progress" xsi:schemaLocation="http://icplayer.com ../../tools/addon.xsd">
+	<model>
+        <property displayName="Show Progress Bar" name="Show_Progress_Bar" nameLabel="Lesson_Progress_property_show_progress_bar" type="boolean"/>
+        <property displayName="Show Checks" name="Show_Checks" nameLabel="Lesson_Progress_property_show_checks" type="boolean"/>
+        <property displayName="Show Correct Answers" name="Show_Correct_Answers" nameLabel="Lesson_Progress_property_show_correct_answers" type="boolean"/>
+        <property displayName="Show Errors" name="Show_Errors" nameLabel="Lesson_Progress_property_show_errors" type="boolean"/>
+        <property displayName="Show Mistakes" name="Show_Mistakes" nameLabel="Lesson_Progress_property_show_mistakes" type="boolean"/>
+        <property displayName="Show All Answers" name="Show_All_Answers" nameLabel="Lesson_Progress_property_show_all_answers" type="boolean"/>
+        <property displayName="Calculate score on page change" name="Calculate_Score_On_Page_Change" nameLabel="Lesson_Progress_property_calculate_score_on_page_change" type="boolean"/>
+	</model>
+<css>.lesson-progress-container .progress-bar-container.hidden, .lesson-progress-container .progress-box.hidden {
+    display: none;
+}
+
+.lesson-progress-container {
+    width: 100%;
+    height: 100%;
+
+}
+
+.lesson-progress-container .progress-bar-container {
+    width: 200px;
+    height: 50px;
+    position: relative;
+    border-radius: 5px;
+    border: 2px solid #02789F;
+    padding: 2px;
+    display: inline-block;
+    float: left;
+}
+
+.lesson-progress-container .progress-bar {
+    background-color: #3CC6CD;
+    position: absolute;
+    height: 50px;
+    border-radius: 5px;
+}
+
+.lesson-progress-container .progress-text {
+    line-height: 50px;
+    position: absolute;
+    width: 100%;
+    text-align: center;
+}
+
+.lesson-progress-container .progress-box .text {
+    min-height: 35px;
+}
+
+.lesson-progress-container .progress-box {
+    line-height: 14px;
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    padding: 3px;
+    border: 1px solid #02789F;
+    margin-left: 5px;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 10px;
+    float: left;
+}
+</css><view>&lt;div class="lesson-progress-container"&gt;
+    &lt;div class="progress-bar-container hidden"&gt;
+        &lt;div class="progress-bar"&gt;&lt;/div&gt;
+        &lt;div class="progress-text"&gt;0%&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="progress-box correct-answers hidden"&gt;
+        &lt;div class="text"&gt;Correct&lt;/div&gt;
+        &lt;div class="value"&gt;0&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="progress-box max-score hidden"&gt;
+        &lt;div class="text"&gt;Max Score&lt;/div&gt;
+        &lt;div class="value"&gt;0&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="progress-box mistakes hidden"&gt;
+        &lt;div class="text"&gt;Mistakes&lt;/div&gt;
+        &lt;div class="value"&gt;0&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="progress-box checks hidden"&gt;
+        &lt;div class="text"&gt;Checks&lt;/div&gt;
+        &lt;div class="value"&gt;0&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="progress-box errors hidden"&gt;
+        &lt;div class="text"&gt;Errors&lt;/div&gt;
+        &lt;div class="value"&gt;0&lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</view><preview>&lt;div class="lesson-progress-container"&gt;
+    &lt;div class="progress-bar-container hidden"&gt;
+        &lt;div class="progress-bar" style="width: 50%;"&gt;&lt;/div&gt;
+        &lt;div class="progress-text"&gt;50%&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="progress-box correct-answers hidden"&gt;
+        &lt;div class="text"&gt;Correct&lt;/div&gt;
+        &lt;div class="value"&gt;0&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="progress-box max-score hidden"&gt;
+        &lt;div class="text"&gt;Max Score&lt;/div&gt;
+        &lt;div class="value"&gt;0&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="progress-box mistakes hidden"&gt;
+        &lt;div class="text"&gt;Mistakes&lt;/div&gt;
+        &lt;div class="value"&gt;0&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="progress-box checks hidden"&gt;
+        &lt;div class="text"&gt;Checks&lt;/div&gt;
+        &lt;div class="value"&gt;0&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="progress-box errors hidden"&gt;
+        &lt;div class="text"&gt;Errors&lt;/div&gt;
+        &lt;div class="value"&gt;0&lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</preview><presenter>function AddonLesson_Progress_create(){
+
+    var presenter = function(){};
+
+    presenter.playerController = null;
+    presenter.eventBus = null;
+
+    presenter.setPlayerController = function (controller) {
+        presenter.playerController = controller;
+        presenter.eventBus = controller.getEventBus();
+        presenter.eventBus.addEventListener('ShowErrors', this);
+    };
+
+    presenter.onEventReceived = function(eventName, _) {
+        if (eventName == 'ShowErrors') {
+            presenter.setShowErrorsMode();
+        }
+    };
+
+    presenter.ERROR_CODES = {
+    };
+
+    presenter.createPreview = function(view, model) {
+        runLogic(view, model, true);
+    };
+
+    presenter.validateModel = function(model) {
+        return {
+            showProgressBar: ModelValidationUtils.validateBoolean(model['Show_Progress_Bar']),
+            showChecks: ModelValidationUtils.validateBoolean(model['Show_Checks']),
+            showErrors: ModelValidationUtils.validateBoolean(model['Show_Errors']),
+            showMistakes: ModelValidationUtils.validateBoolean(model['Show_Mistakes']),
+            showMaxScore: ModelValidationUtils.validateBoolean(model['Show_All_Answers']),
+            showCorrectAnswers: ModelValidationUtils.validateBoolean(model['Show_Correct_Answers']),
+            calculateScoreOnPageChange: ModelValidationUtils.validateBoolean(model['Calculate_Score_On_Page_Change'])
+        }
+    };
+
+    function runLogic(view, model, isPreview) {
+        presenter.$view = $(view);
+        presenter.$progressBarContainer = presenter.$view.find('.progress-bar-container');
+        presenter.$progressBar = presenter.$view.find('.progress-bar');
+        presenter.$progressText = presenter.$view.find('.progress-text');
+        presenter.$checks = presenter.$view.find('.checks');
+        presenter.$errors = presenter.$view.find('.errors');
+        presenter.$mistakes = presenter.$view.find('.mistakes');
+        presenter.$maxScore = presenter.$view.find('.max-score');
+        presenter.$correctAnswers = presenter.$view.find('.correct-answers');
+
+        model = presenter.upgradeModel(model);
+        presenter.configuration = presenter.validateModel(model);
+
+        removeHidden(presenter.configuration.showProgressBar, presenter.$progressBarContainer);
+        removeHidden(presenter.configuration.showChecks, presenter.$checks);
+        removeHidden(presenter.configuration.showErrors, presenter.$errors);
+        removeHidden(presenter.configuration.showMistakes, presenter.$mistakes);
+        removeHidden(presenter.configuration.showMaxScore, presenter.$maxScore);
+        removeHidden(presenter.configuration.showCorrectAnswers, presenter.$correctAnswers);
+
+        if (presenter.configuration.calculateScoreOnPageChange &amp;&amp; !isPreview) {
+            presenter.setShowErrorsMode();
+        }
+    }
+
+    function removeHidden(shouldRemove, $element) {
+        if (shouldRemove) {
+            $element.removeClass('hidden');
+        } else {
+            $element.addClass('hidden');
+        }
+    }
+
+    presenter.run = function(view, model){
+        runLogic(view, model, false);
+    };
+
+    function getLessonScore() {
+        var sumOfScore = 0.0, sumOfErrors = 0, sumOfChecks = 0,
+            sumOfMaxScore = 0.0,
+            sumOfScaledScore = 0.0,
+            sumOfMistakes = 0,
+            sumOfWeights = 0,
+            pageScaledScore = 0,
+            count = 0, i, page, score,
+            paginatedResults = [];
+        var presentation = presenter.playerController.getPresentation();
+        var scoreService = presenter.playerController.getScore();
+
+        for (var i = 0; i &lt; presentation.getPageCount(); i++) {
+            var page = presentation.getPage(i);
+
+            if (page.isReportable()) {
+                score = scoreService.getPageScoreById(page.getId());
+
+                if (score['maxScore']) {
+                    pageScaledScore = score['score'] / score['maxScore'];
+                } else {
+                    pageScaledScore = page.isVisited() ? 1 : 0;
+                }
+
+                var _weight = page.getPageWeight();
+                var weight =  !_weight &amp;&amp; _weight !== 0 ? 1 : _weight;
+                sumOfScaledScore += pageScaledScore * weight;
+                sumOfScore += score.score;
+                sumOfErrors += score.errorCount;
+                sumOfChecks += score.checkCount;
+                sumOfMaxScore += score.maxScore;
+                sumOfMistakes += score.mistakeCount;
+                sumOfWeights += weight;
+                count += 1;
+            }
+        }
+
+        var scaledScore = 0;
+        if (count &gt; 0) {
+            if (sumOfWeights) {
+                scaledScore = Math.round((sumOfScaledScore / sumOfWeights) * 100);
+            } else {
+                scaledScore = 1;
+            }
+        }
+
+        return {
+           progress: parseInt(scaledScore, 10),
+           sumOfMaxScore: scoreService.getMaxScore(),
+           sumOfMistakes: sumOfMistakes,
+           sumOfErrors: sumOfErrors,
+           sumOfChecks: sumOfChecks,
+           sumOfScores: sumOfScore
+       };
+    }
+
+    presenter.setShowErrorsMode = function(){
+        var lessonScore = getLessonScore();
+        if (presenter.configuration.showProgressBar) {
+            presenter.$progressBar.css('width', lessonScore.progress + '%');
+            presenter.$progressText.html(lessonScore.progress + '%');
+        }
+
+        if (presenter.configuration.showChecks) {
+            presenter.$checks.find('.value').html(lessonScore.sumOfChecks);
+        }
+
+        if (presenter.configuration.showMistakes) {
+            presenter.$mistakes.find('.value').html(lessonScore.sumOfMistakes);
+        }
+
+        if (presenter.configuration.showErrors) {
+            presenter.$errors.find('.value').html(lessonScore.sumOfErrors);
+        }
+
+        if (presenter.configuration.showMaxScore) {
+            presenter.$maxScore.find('.value').html(lessonScore.sumOfMaxScore);
+        }
+
+        if (presenter.configuration.showCorrectAnswers) {
+            presenter.$correctAnswers.find('.value').html(lessonScore.sumOfScores);
+        }
+    };
+
+    presenter.setWorkMode = function(){
+    };
+
+    presenter.show = function() {
+        presenter.$view.show();
+    };
+
+    presenter.hide = function() {
+        presenter.$view.hide();
+    };
+
+    presenter.executeCommand = function(name, params) {
+        var commands = {
+            'show' : presenter.show,
+            'hide' : presenter.hide,
+            'getLessonProgress' : presenter.getLessonProgress,
+            'getLessonScore' : presenter.getLessonScore,
+            'getLessonMaxScore' : presenter.getLessonMaxScore,
+            'getLessonMistakes' : presenter.getLessonMistakes,
+            'getLessonChecks' : presenter.getLessonChecks,
+            'getLessonErrors' : presenter.getLessonErrors
+        };
+        Commands.dispatch(commands, name, params, presenter);
+    };
+
+    presenter.getLessonProgress = function() {
+        return getLessonScore().progress;
+    };
+
+    presenter.getLessonScore = function() {
+        return getLessonScore().sumOfScores;
+    };
+
+    presenter.getLessonMaxScore = function() {
+        return getLessonScore().sumOfMaxScore;
+    };
+
+    presenter.getLessonMistakes = function() {
+        return getLessonScore().sumOfMistakes;
+    };
+
+    presenter.getLessonChecks = function() {
+        return getLessonScore().sumOfChecks;
+    };
+
+    presenter.getLessonErrors = function() {
+        return getLessonScore().sumOfErrors;
+    };
+
+    presenter.reset = function(){
+    };
+
+    presenter.getState = function(){
+    };
+
+    presenter.setState = function(state){
+    };
+
+    presenter.upgradeModel = function(model) {
+        var upgradedModel = $.extend(true, upgradedModel, model);
+
+        if (!upgradedModel['Calculate_Score_On_Page_Change']) {
+            upgradedModel['Calculate_Score_On_Page_Change'] = 'False';
+        }
+
+        return upgradedModel;
+    };
+
+    return presenter;
+}
+
+
+</presenter></addon>

@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><addon xmlns="http://icplayer.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Zoom_Image" xsi:schemaLocation="http://icplayer.com ../../tools/addon.xsd">
+    <model>
+        <property displayName="Full Screen image" name="Full Screen image" nameLabel="Zoom_Image_property_full_screen_image" type="image"/>
+        <property displayName="Page image" name="Page image" nameLabel="Zoom_Image_property_page_image" type="image"/>
+        <property name="Alternative text" nameLabel="Zoom_Image_property_alternative_text" type="string"/>
+        <property displayName="Lang attribute" name="langAttribute" nameLabel="Zoom_image_property_lang_attribute" type="string"/>
+         <property displayName="Speech texts" name="speechTexts" nameLabel="Zoom_image_property_speech_texts" type="staticlist">
+            <property name="Closed" nameLabel="Zoom_image_property_closed" type="staticrow">
+                <property name="Closed" nameLabel="Zoom_image_property_closed" type="string"/>
+            </property>
+        </property>
+    </model>
+<css>.addon_Zoom_Image .content {
+    position: relative;
+}
+
+.addon_Zoom_Image .content div.icon {
+    position: absolute;
+    background-color: #adff2f;
+    width: 30px;
+    height: 30px;
+    bottom: 0;
+    right: 0;
+}
+
+img.big {
+    display: table;
+    margin: auto;
+}
+
+.close-button-ui-dialog {
+    display: table;
+    top: 0;
+    right: 0;
+    position: absolute;
+    height: 25px;
+    width: 25px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 5px;
+    text-align: center;
+    font-family: monospace;
+    cursor: pointer;
+    color: #FFF;
+}
+
+.close-cross-ui-dialog {
+    font-size: 15px;
+    display: table-cell;
+    vertical-align: middle;
+}
+</css><view>&lt;div class="content"&gt;
+    &lt;div class="icon"&gt;&lt;/div&gt;
+&lt;/div&gt;
+</view><preview>&lt;div class="content"&gt;
+    &lt;div class="icon"&gt;&lt;/div&gt;
+&lt;/div&gt;
+</preview><presenter>function AddonZoom_Image_create() {
+
+    var presenter = function() {};
+    var eventBus;
+    var playerController = null;
+    var isWCAGOn = false;
+    var oldFocus = null;
+    var backgroundColorStyle;
+    var opacity;
+
+    function setup_presenter() {
+        presenter.$player = null;
+        presenter.view = null;
+        presenter.$view = null;
+        presenter.$image = null;
+        presenter.removeOpenedDialog = null;
+        presenter.bigImageCreated = null;
+        presenter.bigImageLoaded = null;
+        presenter.createPopUp = null;
+        presenter.isOpened = false;
+    }
+
+    setup_presenter();
+
+    function setSmallImage(url) {
+        var $image = $('&lt;img class="small"&gt;');
+        $image.attr("src", url);
+        $image.attr("height", presenter.configuration.height);
+        $image.attr("width", presenter.configuration.width);
+        $image.attr("alt", presenter.configuration.alt);
+        presenter.$view.find("div.content").append($image);
+        if ( presenter.configuration.isTabindexEnabled) {$image.attr('tabindex', '0');}
+    }
+
+    presenter.ERROR_CODES = {
+        IMAGE01: "Property Full Screen image and Page image cannot be empty"
+    };
+
+    function returnErrorObject(ec) { return { isValid: false, errorCode: ec }; }
+
+    function returnCorrectObject(v) { return { isValid: true, value: v }; }
+
+    function parseImage(image) {
+        if (ModelValidationUtils.isStringWithPrefixEmpty(image, "/file/")) {
+            return returnErrorObject("IMAGE01");
+        }
+
+        return returnCorrectObject(image);
+    }
+
+    presenter.setPlayerController = function(controller) {
+        playerController = controller;
+        eventBus = controller.getEventBus();
+    };
+
+    presenter.validateModel = function(model) {
+
+        setSpeechTexts(model['speechTexts']);
+        var validatedBigImage = parseImage(model["Full Screen image"]);
+        if (!validatedBigImage.isValid) {
+            return returnErrorObject(validatedBigImage.errorCode);
+        }
+
+        var validatedSmallImage = parseImage(model["Page image"]);
+        if (!validatedSmallImage.isValid) {
+            return returnErrorObject(validatedSmallImage.errorCode);
+        }
+
+        var isVisible = ModelValidationUtils.validateBoolean(model['Is Visible']);
+
+        var isTabindexEnabled = ModelValidationUtils.validateBoolean(model['Is Tabindex Enabled']);
+
+        return {
+            bigImage: validatedBigImage.value,
+            smallImage: validatedSmallImage.value,
+            ID: model.ID,
+            width: parseInt(model["Width"], 10),
+            height: parseInt(model["Height"], 10),
+            isVisible: isVisible,
+            isVisibleByDefault: isVisible,
+            isValid: true,
+            alt: model['Alternative text'],
+            isTabindexEnabled: isTabindexEnabled,
+            langTag: model['langAttribute']
+        }
+    };
+
+    presenter.presenterLogic = function(view, model, isPreview) {
+        presenter.view = view;
+        presenter.$view = $(view);
+
+        model = presenter.upgradeModel(model);
+        presenter.configuration = presenter.validateModel(model);
+        if (!presenter.configuration.isValid) {
+            DOMOperationsUtils.showErrorMessage(view, presenter.ERROR_CODES, presenter.configuration.errorCode);
+            return false;
+        }
+
+        setSmallImage(presenter.configuration.smallImage);
+
+        if (!isPreview) {
+            presenter.eventType = MobileUtils.isMobileUserAgent(navigator.userAgent) ? "touchend" : "click";
+            presenter.$view.find(".icon").on(presenter.eventType, presenter.createPopUp);
+            presenter.setVisibility(presenter.configuration.isVisible);
+        }
+
+        presenter.view.addEventListener('DOMNodeRemoved', function onDOMNodeRemoved(ev) {
+            if (ev.target === this) {
+                presenter.destroy();
+            }
+        });
+
+        return false;
+    };
+
+    presenter.upgradeModel = function (model) {
+        return presenter.upgradeFrom_01(model);
+    };
+
+    presenter.upgradeFrom_01 = function (model) {
+        var upgradedModel = {};
+        $.extend(true, upgradedModel, model); // Deep copy of model object
+
+        if (!upgradedModel["speechTexts"]) {
+            upgradedModel["speechTexts"] = {
+                Closed: {Closed: 'closed'}
+            };
+        }
+
+        if (!upgradedModel["langAttribute"]) {
+            upgradedModel["langAttribute"] = '';
+        }
+
+        return upgradedModel;
+    };
+
+    function getSpeechTextProperty (rawValue, defaultValue) {
+        var value = rawValue.trim();
+
+        if (value === undefined || value === null || value === '') {
+            return defaultValue;
+        }
+
+        return value;
+    }
+
+    function setSpeechTexts (speechTexts) {
+        presenter.speechTexts = {
+            closed:  'closed'
+        };
+
+        if (!speechTexts) {
+            return;
+        }
+
+        presenter.speechTexts = {
+            closed: getSpeechTextProperty(speechTexts['Closed']['Closed'], presenter.speechTexts.closed)
+        };
+    }
+
+    presenter.destroy = function () {
+        if (presenter.isOpened) {
+            presenter.removeOpenedDialog();
+            presenter.$image.dialog("close");
+        }
+        presenter.unbindEvents();
+
+        setup_presenter();
+        setup_presenter = null;
+    };
+
+    presenter.unbindEvents = function () {
+        presenter.view.removeEventListener('DOMNodeRemoved', presenter.destroy);
+        presenter.$view.find(".icon").off(presenter.eventType, presenter.createPopUp);
+        if (presenter.$image !== null) {
+            if (presenter.isOpened) {
+                presenter.$view.find('.close-button-ui-dialog').off('click', presenter.removeOpenedDialog);
+            }
+            presenter.$image.off();
+        }
+    }
+
+    presenter.run = function(view, model) {
+        presenter.$view = $(view);
+        presenter.presenterLogic(view, model, false);
+    };
+
+    presenter.createPreview = function(view, model) {
+        presenter.presenterLogic(view, model, true);
+    };
+
+    presenter.setVisibility = function(isVisible) {
+        presenter.$view.css("visibility", isVisible ? "visible" : "hidden");
+        presenter.configuration.isVisible = isVisible;
+    };
+
+    function calculateImageSize(image) {
+        var $player;
+        if(document.getElementById('_icplayer') != null){
+            $player = $('#_icplayer');
+        }else{
+            $player = $('.ic_page_panel');
+        }
+
+        var dialog = {};
+        var x = image.width;
+        var y = image.height;
+        var playerWidth = $player[0].getBoundingClientRect()?.width || $player.width();
+        var playerHeight = $player[0].getBoundingClientRect()?.height || $player.height();
+        var xProportion = x / playerWidth;
+        var yProportion = y / playerHeight;
+
+        if (xProportion &lt; 1 &amp;&amp; yProportion &lt; 1) {
+            dialog.width = x;
+            dialog.height = y;
+        } else if (xProportion &gt; yProportion) {
+            dialog.width = playerWidth;
+            dialog.height = y / xProportion;
+        } else {
+            dialog.height = playerHeight;
+            dialog.width = x / yProportion;
+        }
+
+        return dialog;
+    }
+
+    function sendEvent(value) {
+        var eventData = {
+            source: presenter.configuration.ID,
+            value: value
+        };
+        eventBus.sendEvent('ValueChanged', eventData);
+    }
+
+    presenter.removeOpenedDialog = function (e) {
+        $('.ui-widget-overlay').css("opacity", opacity);
+        $('.ui-widget-overlay').css("background", backgroundColorStyle);
+        if(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        $(".zoom-image-wraper").remove();
+        $(".big").remove();
+        sendEvent(0);
+        presenter.isOpened = false;
+    };
+
+    presenter.bigImageCreated = function() {
+        var $close = $('&lt;div class="close-button-ui-dialog"&gt;');
+        $close.on('click', presenter.removeOpenedDialog);
+
+        $(this).parents(".ui-dialog").append($close);
+
+        var $closeCross= $('&lt;div class="close-cross-ui-dialog"&gt;');
+        $closeCross.html('&amp;times;');
+        $(this).parents(".ui-dialog").children(".close-button-ui-dialog").append($closeCross);
+
+        $(this).parents(".ui-dialog:first").find(".ui-dialog-titlebar").css("display", "none");
+        $(this).parents(".ui-dialog").css("padding", 0);
+        $(this).parents(".ui-dialog").css("border", 0);
+        $(this).parents(".ui-dialog:first").find(".ui-dialog-content").css("padding", 0);
+        sendEvent(1);
+    };
+
+    presenter.bigImageLoaded = function(){
+        if(document.getElementById('_icplayer') != null){
+            presenter.$player  = document.getElementById('_icplayer');
+        }else{
+            presenter.$player  = document.getElementsByClassName('ic_page_panel');
+        }
+
+        var dialogSize = calculateImageSize(this);
+
+        presenter.$image.appendTo(presenter.$view);
+
+        if(!oldFocus &amp;&amp; isWCAGOn &amp;&amp; $.browser.mozilla) {
+            // This hack is meant to prevent issues between TTS and NVDA on Firefox
+            // When the dialog is created, jquery.ui changes browser focus, causing NVDA to speak
+            // simultaneously with TTS. In order to prevent that, jQuery.focus() function is temporarily disabled
+            // and then restored after dialog has been created
+            oldFocus = $.fn.focus;
+            $.fn.focus = function () {
+                return this;
+            };
+        }
+        presenter.$image.dialog({
+            height: dialogSize.height,
+            width: dialogSize.width,
+            modal: true,
+            resizable: false,
+            draggable: false,
+            show: {
+                effect: "fade",
+                duration: 1000
+            },
+            position: {
+                my: "center",
+                at: "center",
+                of: presenter.$player
+            },
+            create: presenter.bigImageCreated,
+            open: function() {
+                opacity = $('.ui-widget-overlay').css("opacity");
+                backgroundColorStyle = $('.ui-widget-overlay').css("background");
+                $('.ui-widget-overlay').css("background", "black");
+                $('.ui-widget-overlay').css("opacity", "0.7");
+                $('.ui-widget-overlay').on(presenter.eventType, presenter.removeOpenedDialog);
+            }
+        });
+        presenter.$image.parent().wrap("&lt;div class='zoom-image-wraper'&gt;&lt;/div&gt;");
+        presenter.$image.on(presenter.eventType, presenter.removeOpenedDialog);
+
+        if(oldFocus) {
+            // Restoring jQuery.focus() after the hack meant to prevent issues between TTS and NVDA on Firefox
+            $.fn.focus = oldFocus;
+            oldFocus = null;
+        }
+    };
+
+    presenter.createPopUp = function createPopUp(e) {
+        if(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        presenter.$image = $("&lt;img class='big' src='" + presenter.configuration.bigImage + "' alt='"+presenter.configuration.alt+"'&gt;");
+        presenter.$image.on("load", presenter.bigImageLoaded);
+        presenter.isOpened = true;
+    };
+
+    presenter.executeCommand = function (name, params) {
+        var commands = {
+            'show': presenter.show,
+            'hide': presenter.hide
+        };
+
+        return Commands.dispatch(commands, name, params, presenter);
+    };
+
+    presenter.hide = function () {
+        presenter.setVisibility(false);
+    };
+
+    presenter.show = function () {
+        presenter.setVisibility(true);
+    };
+
+    presenter.reset = function() {
+        presenter.configuration.isVisibleByDefault ? presenter.show() : presenter.hide();
+    };
+
+    presenter.getState = function () {
+        return JSON.stringify({
+            isVisible: presenter.configuration.isVisible
+        });
+    };
+
+    presenter.upgradeStateForVisibility = function (parsedState) {
+        if (parsedState.isVisible == undefined) {
+            parsedState.isVisible = true;
+        }
+
+        return parsedState;
+    };
+
+    presenter.upgradeState = function(parsedState) {
+        return presenter.upgradeStateForVisibility(parsedState);
+    };
+
+    presenter.setState = function (state) {
+        if (!state) {
+            return;
+        }
+
+        var parsedState = JSON.parse(state),
+            upgradedState = presenter.upgradeState(parsedState);
+
+        presenter.setVisibility(upgradedState.isVisible);
+    };
+
+    presenter.keyboardController = function(keyCode, isShift, event) {
+         if (keyCode == window.KeyboardControllerKeys.SPACE ||
+             keyCode == window.KeyboardControllerKeys.ESC ||
+             keyCode == window.KeyboardControllerKeys.ARROW_UP ||
+             keyCode == window.KeyboardControllerKeys.ARROW_DOWN)
+         {
+             event.preventDefault();
+         }
+
+         if (keyCode === 13 &amp;&amp; !isShift) { // Enter button
+            if (!presenter.isOpened) {
+                presenter.createPopUp();
+            }
+            presenter.readAltText();
+        }
+
+        if (keyCode === 27 || keyCode === 9) { // ESC or TAB button
+            presenter.removeOpenedDialog();
+            presenter.$view.removeClass('ic_active_module');
+            if (keyCode === 27) {
+                presenter.readClosed();
+            } else {
+                playerController.getKeyboardController().moveActiveModule(isShift);
+            }
+        }
+    };
+
+    presenter.getTextToSpeechOrNull = function (playerController) {
+        if (playerController) {
+            return playerController.getModule('Text_To_Speech1');
+        }
+
+        return null;
+    };
+
+    presenter.setWCAGStatus = function (isOn) {
+        isWCAGOn = isOn;
+    };
+
+    function speak (data) {
+        var tts = presenter.getTextToSpeechOrNull(playerController);
+
+        if (tts &amp;&amp; isWCAGOn) {
+            tts.speak(data);
+        }
+    }
+
+    presenter.readAltText = function() {
+        var speechVoices = [];
+        speechVoices.push(window.TTSUtils.getTextVoiceObject(presenter.configuration.alt, presenter.configuration.langTag));
+        speak(speechVoices);
+    };
+
+    presenter.readClosed = function() {
+        var speechVoices = [];
+        speechVoices.push(window.TTSUtils.getTextVoiceObject(presenter.speechTexts.closed));
+        speak(speechVoices);
+    };
+
+    presenter.isEnterable = function() {return presenter.isOpened};
+
+    return presenter;
+}
+</presenter></addon>

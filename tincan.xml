@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<tincan xmlns="http://projecttincan.com/tincan.xsd">
+    <activities>
+        <activity id="https://www.mauthor.com/xapi/activity/6186207056363520/6186207056363520" type="http://adlnet.gov/expapi/activities/course">
+            <name>3.2 Хемиски симболи и формули</name>
+            <description lang="en-US"></description>
+            <launch lang="en-us">index.html</launch>
+        </activity>
+    </activities>
+</tincan>

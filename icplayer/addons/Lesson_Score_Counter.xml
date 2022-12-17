@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><addon xmlns="http://icplayer.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Lesson_Score_Counter" xsi:schemaLocation="http://icplayer.com ../../tools/addon.xsd">
+<model>
+    <property displayName="Display Mode" name="DisplayMode" nameLabel="Lesson_Score_Counter_property_display_mode" type="{Fraction (Score/Max Score),Score,Max Score,Percentage}"/>
+</model>
+<css>.lesson-score-counter-wrapper {
+
+}
+
+.lesson-score-counter-wrapper &gt; div.hidden {
+    display: none;
+}
+
+.lesson-score-counter-wrapper &gt; div {
+    border: 1px solid #002266;
+    border-radius: 4px;
+    background-color: #fafafa;
+    box-shadow: 1px 1px 1px #005599;
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    line-height: 50px;
+    font-size: 12px;
+}
+
+.lesson-score-counter-wrapper .fraction &gt; div {
+    text-align: left;
+    display: inline-block;
+}
+</css><view>&lt;div class="lesson-score-counter-wrapper"&gt;
+    &lt;div class="fraction hidden"&gt;
+        &lt;div class="score"&gt;
+            0
+        &lt;/div&gt;
+        &lt;div class="separator"&gt;
+            /
+        &lt;/div&gt;
+        &lt;div class="max-score"&gt;
+            0
+        &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="score hidden"&gt;
+        0
+    &lt;/div&gt;
+    &lt;div class="max-score hidden"&gt;
+        0
+    &lt;/div&gt;
+    &lt;div class="percentage hidden"&gt;
+
+    &lt;/div&gt;
+&lt;/div&gt;
+</view><preview>&lt;div class="lesson-score-counter-wrapper"&gt;
+    &lt;div class="fraction hidden"&gt;
+        &lt;div class="score"&gt;
+            0
+        &lt;/div&gt;
+        &lt;div class="separator"&gt;
+            /
+        &lt;/div&gt;
+        &lt;div class="max-score"&gt;
+            0
+        &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="score hidden"&gt;
+        0
+    &lt;/div&gt;
+    &lt;div class="max-score hidden"&gt;
+        0
+    &lt;/div&gt;
+&lt;/div&gt;
+</preview><presenter>function AddonLesson_Score_Counter_create(){
+
+    var presenter = function(){};
+
+    presenter.playerController = null;
+    presenter.eventBus = null;
+    presenter.isVisible = true;
+    presenter.score = 0;
+    presenter.maxScore = 0;
+
+    presenter.DISPLAY_MODE = {
+        FRACTION: 1,
+        SCORE: 2,
+        MAX_SCORE: 3,
+        PERCENTAGE: 4
+    };
+
+    presenter.setPlayerController = function (controller) {
+        presenter.playerController = controller;
+        presenter.eventBus = controller.getEventBus();
+    };
+
+    presenter.onEventReceived = function(eventName) {
+    };
+
+    presenter.createEventData = function (score) {
+    };
+
+    presenter.sendEvent = function(eventName, eventData) {
+        presenter.eventBus.sendEvent(eventName, eventData);
+    };
+
+    presenter.ERROR_CODES = {
+
+    };
+
+    presenter.createPreview = function(view, model) {
+        runLogic(view, model, true);
+    };
+
+    presenter.validateModel = function(model) {
+        return {
+            'isVisible' : ModelValidationUtils.validateBoolean(model["Is Visible"]),
+            'addonID' : model['ID'],
+            'displayMode' : getDisplayMode(model['DisplayMode'])
+        }
+    };
+
+    function getDisplayMode(rawDisplayMode) {
+        if (rawDisplayMode == 'Fraction (Score/Max Score)' || rawDisplayMode == '') { // when dropdown hasn't been changed it gives you empty string
+            return presenter.DISPLAY_MODE.FRACTION;
+        } else if (rawDisplayMode == 'Score'){
+            return presenter.DISPLAY_MODE.SCORE;
+        } else if (rawDisplayMode == 'Max Score') {
+            return presenter.DISPLAY_MODE.MAX_SCORE;
+        } else if (rawDisplayMode == 'Percentage') {
+            return presenter.DISPLAY_MODE.PERCENTAGE;
+        }
+    }
+
+    function runLogic(view, model, isPreview) {
+
+        presenter.configuration = presenter.validateModel(model);
+
+        if (presenter.configuration.isError) {
+            DOMOperationsUtils.showErrorMessage(view, presenter.ERROR_CODES, presenter.configuration.errorCode);
+            return;
+        }
+
+        presenter.$view = $(view);
+        presenter.setVisibility(presenter.configuration.isVisible || isPreview);
+        presenter.$fractionWrapper = presenter.$view.find('.lesson-score-counter-wrapper &gt; .fraction');
+        presenter.$scoreWrapper = presenter.$view.find('.lesson-score-counter-wrapper &gt; .score');
+        presenter.$maxScoreWrapper = presenter.$view.find('.lesson-score-counter-wrapper &gt; .max-score');
+        presenter.$percentageWrapper = presenter.$view.find('.lesson-score-counter-wrapper &gt; .percentage');
+
+        if (presenter.configuration.displayMode == presenter.DISPLAY_MODE.FRACTION) {
+            toggleBoxVisibility(presenter.$fractionWrapper);
+        } else if (presenter.configuration.displayMode == presenter.DISPLAY_MODE.SCORE) {
+            toggleBoxVisibility(presenter.$scoreWrapper);
+        } else if (presenter.configuration.displayMode == presenter.DISPLAY_MODE.MAX_SCORE) {
+            toggleBoxVisibility(presenter.$maxScoreWrapper);
+        } else if (presenter.configuration.displayMode == presenter.DISPLAY_MODE.PERCENTAGE) {
+            toggleBoxVisibility(presenter.$percentageWrapper);
+        }
+
+        if (!isPreview) {
+            updateValue();
+        }
+    }
+
+    function updateValue(scoreValue, maxScoreValue) {
+        if (presenter.playerController) {
+            var score = scoreValue == undefined ? 0 : scoreValue,
+                maxScore = maxScoreValue == undefined ? 0 : maxScoreValue;
+
+            var scoreService = presenter.playerController.getScore();
+
+            var score = scoreService.getTotalScore(),
+                maxScore = scoreService.getMaxScore();
+
+            if (maxScore &gt; 0) {
+                presenter.$percentageWrapper.html(parseInt(((score/maxScore) * 100), 10) + '%');
+            }
+            presenter.$fractionWrapper.find('.score').html(score);
+            presenter.$fractionWrapper.find('.max-score').html(maxScore);
+            presenter.$scoreWrapper.html(score);
+            presenter.$maxScoreWrapper.html(maxScore);
+            presenter.score = score;
+            presenter.maxScore = maxScore;
+        }
+    }
+
+    function toggleBoxVisibility($element) {
+        presenter.$view.find('.lesson-score-counter-wrapper &gt; div').addClass('hidden');
+        $element.removeClass('hidden');
+    }
+
+    presenter.run = function(view, model) {
+        runLogic(view, model, false);
+    };
+
+    presenter.setShowErrorsMode = function() {
+    };
+
+    presenter.setWorkMode = function() {};
+
+    presenter.reset = function() {
+        presenter.setVisibility(presenter.configuration.isVisible);
+    };
+
+    presenter.setVisibility = function (isVisible) {
+        presenter.isVisible = isVisible;
+        presenter.$view.css("visibility", isVisible ? "visible" : "hidden");
+    };
+
+    presenter.show = function() {
+        presenter.setVisibility(true);
+    };
+
+    presenter.hide = function() {
+        presenter.setVisibility(false);
+    };
+
+    presenter.executeCommand = function(name, params) {
+        var commands = {
+            'show': presenter.show,
+            'hide': presenter.hide
+        };
+
+        Commands.dispatch(commands, name, params, presenter);
+    };
+
+    presenter.getErrorCount = function() {
+        return 0;
+    };
+
+    presenter.getMaxScore = function() {
+        return 0;
+    };
+
+    presenter.getScore = function() {
+        return 0;
+    };
+
+    presenter.getState = function() {
+        return JSON.stringify({
+            'isVisible' : presenter.isVisible,
+            'score' : presenter.score,
+            'maxScore' : presenter.maxScore
+        });
+    };
+
+    presenter.setState = function(state) {
+        var parsed = JSON.parse(state);
+        presenter.isVisible = parsed.isVisible;
+
+        updateValue(parsed.score, parsed.maxScore);
+
+        presenter.setVisibility(presenter.isVisible);
+    };
+
+    return presenter;
+}
+</presenter></addon>

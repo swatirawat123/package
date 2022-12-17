@@ -1,0 +1,86 @@
+
+.ic_selectionWidget{
+	border: 1px solid #4a84ff;
+	cursor: move;
+}
+
+.ic_resizeWidget{
+	border: 1px solid black;
+	background-color:white;
+	cursor: se-resize;
+}
+
+.ic_resizeInfoWidget{
+	background-color:black;
+	color:white;
+	font-size:12px;
+	padding:1px;
+}
+
+.ic_itemEditorGrid td:nth-child(1){
+	width:70px;
+	font-size:12px;
+}
+
+.ic_scriptEditor{
+	font-family: Courier New, monospace;
+	white-space: nowrap;
+	font-size: 12px;
+	line-height:150%;
+	border: 1px solid lightgray;
+}
+
+.ic_textEditor{
+	font-family: Courier New, monospace;
+	white-space: pre;
+	font-size: 12px;
+	line-height:150%;
+	border: 1px solid lightgray;
+}
+
+.ic_messagePopup {
+    padding:5px;
+    font-size:14px;
+    border:solid;
+    border-width:2px;
+    border-color:gray;
+    background-color:yellow;
+    color:black;
+}
+
+.ic_cell_header{
+	background-color:lightgray;
+	padding: 4px;
+}
+
+.ic_cell_header_label{
+	font-weight: bold;
+	font-size: 120%;
+}
+
+.ic_cell_header_box{
+	width:100%
+}
+
+.ic_cell_header_box td:first-child{
+	width:70%;
+	vertical-align: middle;
+}
+	
+
+.ic_cell_header_box td:nth-child(2){
+	width:30%;
+	vertical-align: middle;
+	text-align: right;
+}
+
+.ic_cell_header_button{
+	display:inline-block;
+	margin: 2px;
+	cursor: pointer;
+}
+
+.ic_cell_header_button-up-disabled{
+	cursor: auto;
+	opacity: 0.5;
+}
