@@ -1,470 +1,1086 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width">
-    <meta name="format-detection" content="telephone=no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="format-detection" content="telephone=no" />
     <title>3.2 Хемиски симболи и формули - mauthor.com</title>
+    <script type="text/javascript" charset="utf-8">
+      !(function (e, t) {
+        "object" == typeof exports
+          ? (module.exports = t())
+          : "function" == typeof define && define.amd
+          ? define([], function () {
+              return (e.Channel = t());
+            })
+          : (e.Channel = t());
+      })(this, function () {
+        "use strict";
+        return (function () {
+          function e(e) {
+            return Array.isArray
+              ? Array.isArray(e)
+              : -1 != e.constructor.toString().indexOf("Array");
+          }
+          var t = Math.floor(1000001 * Math.random()),
+            n = {},
+            o = {},
+            r = function (e) {
+              try {
+                var t = JSON.parse(e.data);
+                if ("object" != typeof t || null === t) throw "malformed";
+              } catch (e) {
+                return;
+              }
+              var r,
+                i,
+                a,
+                s = e.source,
+                c = e.origin;
+              if ("string" == typeof t.method) {
+                var d = t.method.split("::");
+                2 == d.length ? ((r = d[0]), (a = d[1])) : (a = t.method);
+              }
+              if ((void 0 !== t.id && (i = t.id), "string" == typeof a)) {
+                var l = !1;
+                if (n[c] && n[c][r])
+                  for (f = 0; f < n[c][r].length; f++)
+                    if (n[c][r][f].win === s) {
+                      n[c][r][f].handler(c, a, t), (l = !0);
+                      break;
+                    }
+                if (!l && n["*"] && n["*"][r])
+                  for (var f = 0; f < n["*"][r].length; f++)
+                    if (n["*"][r][f].win === s) {
+                      n["*"][r][f].handler(c, a, t);
+                      break;
+                    }
+              } else void 0 !== i && o[i] && o[i](c, a, t);
+            };
+          return (
+            window.addEventListener
+              ? window.addEventListener("message", r, !1)
+              : window.attachEvent && window.attachEvent("onmessage", r),
+            {
+              build: function (r) {
+                var i = function (e) {
+                  if (r.debugOutput && window.console && window.console.log) {
+                    try {
+                      "string" != typeof e && (e = JSON.stringify(e));
+                    } catch (e) {}
+                    window.console.log("[" + c + "] " + e);
+                  }
+                };
+                if (!window.postMessage)
+                  throw "jschannel cannot run this browser, no postMessage";
+                if (
+                  !window.JSON ||
+                  !window.JSON.stringify ||
+                  !window.JSON.parse
+                )
+                  throw "jschannel cannot run this browser, no JSON parsing/serialization";
+                if ("object" != typeof r)
+                  throw "Channel build invoked without a proper object argument";
+                if (!r.window || !r.window.postMessage)
+                  throw "Channel.build() called without a valid window argument";
+                window === r.window &&
+                  i(
+                    "target window is same as present window -- use at your own risk"
+                  );
+                var a = !1;
+                if ("string" == typeof r.origin) {
+                  var s;
+                  "*" === r.origin
+                    ? (a = !0)
+                    : null !==
+                        (s = r.origin.match(
+                          /^https?:\/\/(?:[-a-zA-Z0-9_\.])+(?::\d+)?/
+                        )) && ((r.origin = s[0].toLowerCase()), (a = !0));
+                }
+                if (!a) throw "Channel.build() called with an invalid origin";
+                if (void 0 !== r.scope) {
+                  if ("string" != typeof r.scope)
+                    throw "scope, when specified, must be a string";
+                  if (r.scope.split("::").length > 1)
+                    throw "scope may not contain double colons: '::'";
+                } else r.scope = "__default";
+                var c = (function () {
+                    for (
+                      var e = "",
+                        t =
+                          "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+                        n = 0;
+                      n < 5;
+                      n++
+                    )
+                      e += t.charAt(Math.floor(Math.random() * t.length));
+                    return e;
+                  })(),
+                  d = {},
+                  l = {},
+                  f = {},
+                  u = !1,
+                  h = [],
+                  p = [],
+                  m = function (t, n, a) {
+                    if ("function" == typeof r.gotMessageObserver)
+                      try {
+                        r.gotMessageObserver(t, a);
+                      } catch (e) {
+                        i(
+                          "gotMessageObserver() raised an exception: " +
+                            e.toString()
+                        );
+                      }
+                    if (a.id && n) {
+                      f[a.id] = {};
+                      var s = (function (e, t, n) {
+                        var o = !1,
+                          r = !1;
+                        return {
+                          origin: t,
+                          invoke: function (t, o) {
+                            if (!f[e])
+                              throw (
+                                "attempting to invoke a callback of a nonexistent transaction: " +
+                                e
+                              );
+                            for (var r = !1, i = 0; i < n.length; i++)
+                              if (t === n[i]) {
+                                r = !0;
+                                break;
+                              }
+                            if (!r)
+                              throw (
+                                "request supports no such callback '" + t + "'"
+                              );
+                            w({ id: e, callback: t, params: o });
+                          },
+                          error: function (t, n) {
+                            if (((r = !0), !f[e]))
+                              throw (
+                                "error called for nonexistent message: " + e
+                              );
+                            delete f[e], w({ id: e, error: t, message: n });
+                          },
+                          complete: function (t) {
+                            if (((r = !0), !f[e]))
+                              throw (
+                                "complete called for nonexistent message: " + e
+                              );
+                            delete f[e], w({ id: e, result: t });
+                          },
+                          delayReturn: function (e) {
+                            return "boolean" == typeof e && (o = !0 === e), o;
+                          },
+                          completed: function () {
+                            return r;
+                          },
+                        };
+                      })(a.id, t, a.callbacks ? a.callbacks : []);
+                      if (d[n])
+                        try {
+                          if (
+                            a.callbacks &&
+                            e(a.callbacks) &&
+                            a.callbacks.length > 0
+                          )
+                            for (var c = 0; c < a.callbacks.length; c++) {
+                              for (
+                                var u = a.callbacks[c],
+                                  h = a.params,
+                                  p = u.split("/"),
+                                  m = 0;
+                                m < p.length - 1;
+                                m++
+                              ) {
+                                var g = p[m];
+                                "object" != typeof h[g] && (h[g] = {}),
+                                  (h = h[g]);
+                              }
+                              h[p[p.length - 1]] = (function () {
+                                var e = u;
+                                return function (t) {
+                                  return s.invoke(e, t);
+                                };
+                              })();
+                            }
+                          var b = d[n](s, a.params);
+                          s.delayReturn() || s.completed() || s.complete(b);
+                        } catch (t) {
+                          var y = "runtime_error",
+                            v = null;
+                          if (
+                            ("string" == typeof t
+                              ? (v = t)
+                              : "object" == typeof t &&
+                                (t instanceof Error
+                                  ? ((y = t.constructor.name), (v = t.message))
+                                  : t && e(t) && 2 == t.length
+                                  ? ((y = t[0]), (v = t[1]))
+                                  : "string" == typeof t.error &&
+                                    ((y = t.error),
+                                    t.message
+                                      ? "string" == typeof t.message
+                                        ? (v = t.message)
+                                        : (t = t.message)
+                                      : (v = ""))),
+                            null === v)
+                          )
+                            try {
+                              void 0 === (v = JSON.stringify(t)) &&
+                                (v = t.toString());
+                            } catch (e) {
+                              v = t.toString();
+                            }
+                          s.error(y, v);
+                        }
+                      else
+                        s.error(
+                          "method_not_found",
+                          "No method '" +
+                            n +
+                            "' was (yet) bound by the provider"
+                        );
+                    } else
+                      a.id && a.callback
+                        ? l[a.id] &&
+                          l[a.id].callbacks &&
+                          l[a.id].callbacks[a.callback]
+                          ? l[a.id].callbacks[a.callback](a.params)
+                          : i(
+                              "ignoring invalid callback, id:" +
+                                a.id +
+                                " (" +
+                                a.callback +
+                                ")"
+                            )
+                        : a.id
+                        ? l[a.id]
+                          ? (a.error
+                              ? l[a.id].error &&
+                                l[a.id].error(a.error, a.message)
+                              : void 0 !== a.result
+                              ? l[a.id].success(a.result)
+                              : l[a.id].success(),
+                            delete l[a.id],
+                            delete o[a.id])
+                          : i("ignoring invalid response: " + a.id)
+                        : n && d[n] && d[n]({ origin: t }, a.params);
+                  };
+                !(function (e, t, o, r) {
+                  function i(t) {
+                    for (var n = 0; n < t.length; n++)
+                      if (t[n].win === e) return !0;
+                    return !1;
+                  }
+                  var a = !1;
+                  if ("*" === t) {
+                    for (var s in n)
+                      if (
+                        n.hasOwnProperty(s) &&
+                        "*" !== s &&
+                        "object" == typeof n[s][o] &&
+                        (a = i(n[s][o]))
+                      )
+                        break;
+                  } else
+                    n["*"] && n["*"][o] && (a = i(n["*"][o])),
+                      !a && n[t] && n[t][o] && (a = i(n[t][o]));
+                  if (a)
+                    throw (
+                      "A channel is already bound to the same window which overlaps with origin '" +
+                      t +
+                      "' and has scope '" +
+                      o +
+                      "'"
+                    );
+                  "object" != typeof n[t] && (n[t] = {}),
+                    "object" != typeof n[t][o] && (n[t][o] = []),
+                    n[t][o].push({ win: e, handler: r });
+                })(r.window, r.origin, r.scope, m);
+                var g = function (e) {
+                    return [r.scope, e].join("::");
+                  },
+                  w = function (e, t) {
+                    if (!e) throw "postMessage called with null message";
+                    if (t || u) {
+                      if ("function" == typeof r.postMessageObserver)
+                        try {
+                          r.postMessageObserver(r.origin, e);
+                        } catch (e) {
+                          i(
+                            "postMessageObserver() raised an exception: " +
+                              e.toString()
+                          );
+                        }
+                      i(
+                        "post message: " +
+                          JSON.stringify(e) +
+                          " with origin " +
+                          r.origin
+                      ),
+                        r.window.postMessage(JSON.stringify(e), r.origin);
+                    } else i("queue message: " + JSON.stringify(e)), h.push(e);
+                  },
+                  b = function (e, t) {
+                    e = [].concat(e);
+                    for (var n, o = 0; o < e.length; o++)
+                      t[(n = e[o].toString())] = (function (e) {
+                        return function (t, n, o) {
+                          n
+                            ? y.call({
+                                method: e,
+                                params: t,
+                                success: n,
+                                error: o,
+                              })
+                            : y.notify({ method: e, params: t });
+                        };
+                      })(n);
+                  },
+                  y = {
+                    remote: {},
+                    unbind: function (e, t) {
+                      if (d[e]) {
+                        if (!delete d[e]) throw "can't delete method: " + e;
+                        return (
+                          r.publish &&
+                            !t &&
+                            (u
+                              ? y.notify({ method: "__unbind", params: e })
+                              : p.push({ action: "unbind", method: e })),
+                          !0
+                        );
+                      }
+                      return !1;
+                    },
+                    bind: function (e, t, n) {
+                      if (!e || "string" != typeof e)
+                        throw "'method' argument to bind must be string";
+                      if (!t || "function" != typeof t)
+                        throw "callback missing from bind params";
+                      if (d[e]) throw "method '" + e + "' is already bound!";
+                      return (
+                        (d[e] = t),
+                        r.publish &&
+                          !n &&
+                          (u
+                            ? y.notify({ method: "__bind", params: e })
+                            : p.push({ action: "bind", method: e })),
+                        this
+                      );
+                    },
+                    call: function (e) {
+                      if (!e) throw "missing arguments to call function";
+                      if (!e.method || "string" != typeof e.method)
+                        throw "'method' argument to call must be string";
+                      if (!e.success || "function" != typeof e.success)
+                        throw "'success' callback missing from call";
+                      var n = {},
+                        r = [],
+                        i = [],
+                        a = function (e, t) {
+                          if (i.indexOf(t) >= 0)
+                            throw "params cannot be a recursive data structure";
+                          if ((t && i.push(t), "object" == typeof t))
+                            for (var o in t)
+                              if (t.hasOwnProperty(o)) {
+                                var s = e + (e.length ? "/" : "") + o;
+                                "function" == typeof t[o]
+                                  ? ((n[s] = t[o]), r.push(s), delete t[o])
+                                  : "object" == typeof t[o] && a(s, t[o]);
+                              }
+                        };
+                      a("", e.params);
+                      var s = { id: t, method: g(e.method), params: e.params };
+                      r.length && (s.callbacks = r),
+                        e.timeout &&
+                          (function (e, t, n) {
+                            window.setTimeout(function () {
+                              if (l[e]) {
+                                var r =
+                                  "timeout (" +
+                                  t +
+                                  "ms) exceeded on method '" +
+                                  n +
+                                  "'";
+                                l[e].error && l[e].error("timeout_error", r),
+                                  delete l[e],
+                                  delete o[e];
+                              }
+                            }, t);
+                          })(t, e.timeout, g(e.method)),
+                        (l[t] = {
+                          callbacks: n,
+                          error: e.error,
+                          success: e.success,
+                        }),
+                        (o[t] = m),
+                        t++,
+                        w(s);
+                    },
+                    notify: function (e) {
+                      if (!e) throw "missing arguments to notify function";
+                      if (!e.method || "string" != typeof e.method)
+                        throw "'method' argument to notify must be string";
+                      w({ method: g(e.method), params: e.params });
+                    },
+                    destroy: function () {
+                      !(function (e, t, o) {
+                        for (var r = n[t][o], i = 0; i < r.length; i++)
+                          r[i].win === e && r.splice(i, 1);
+                        0 === n[t][o].length && delete n[t][o];
+                      })(r.window, r.origin, r.scope),
+                        window.removeEventListener
+                          ? window.removeEventListener("message", m, !1)
+                          : window.detachEvent &&
+                            window.detachEvent("onmessage", m),
+                        (u = !1),
+                        (d = {}),
+                        (f = {}),
+                        (l = {}),
+                        (r.origin = null),
+                        (h = []),
+                        i("channel destroyed"),
+                        (c = "");
+                    },
+                  };
+                return (
+                  y.bind(
+                    "__ready",
+                    function (e, t) {
+                      if ((i("ready msg received"), u && !r.reconnect))
+                        throw "received ready message while in ready state.";
+                      (u = !0),
+                        c.length < 6 &&
+                          ("publish-request" === t.type
+                            ? (c += "-R")
+                            : (c += "-L")),
+                        i("ready msg accepted."),
+                        "publish-request" === t.type &&
+                          y.notify({
+                            method: "__ready",
+                            params: { type: "publish-reply", publish: p },
+                          });
+                      for (var n = 0; n < t.publish.length; n++)
+                        "bind" === t.publish[n].action
+                          ? b([t.publish[n].method], y.remote)
+                          : delete y.remote[t.publish[n].method];
+                      for (r.reconnect || y.unbind("__ready", !0); h.length; )
+                        w(h.splice(0, 1)[0]);
+                      (p = []), "function" == typeof r.onReady && r.onReady(y);
+                    },
+                    !0
+                  ),
+                  y.bind(
+                    "__bind",
+                    function (e, t) {
+                      b([t], y.remote);
+                    },
+                    !0
+                  ),
+                  y.bind(
+                    "__unbind",
+                    function (e, t) {
+                      y.remote[t] && delete y.remote[t];
+                    },
+                    !0
+                  ),
+                  r.remote && b(r.remote, y.remote),
+                  setTimeout(function () {
+                    c.length > 0 &&
+                      w(
+                        {
+                          method: g("__ready"),
+                          params: { type: "publish-request", publish: p },
+                        },
+                        !0
+                      );
+                  }, 0),
+                  y
+                );
+              },
+            }
+          );
+        })();
+      });
+    </script>
 
-    <script type="text/javascript" language="javascript" src="javascript/jquery-1.7.1.min.js"></script>
-    <script type="text/javascript" language="javascript" src="icplayer/icplayer.nocache.js"></script>
-    <script type="text/javascript" src="javascript/semi-responsive-layout-chooser.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script
+      type="text/javascript"
+      language="javascript"
+      src="javascript/jquery-1.7.1.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      language="javascript"
+      src="icplayer/icplayer.nocache.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="javascript/semi-responsive-layout-chooser.js"
+    ></script>
     <script type="text/javascript" src="javascript/screen.js"></script>
 
     <script type="text/x-mathjax-config">
-		MathJax.Hub.Config({
-			TeX: {imageFont: null, extensions: ["mhchem.js", "AMSsymbols.js", "AMSmath.js"]},
-			extensions: ["tex2jax.js", "mml2jax.js", "forminput.js"],
-			skipStartupTypeset: true,
-			showProcessingMessages: false,
-			jax: ["input/TeX", "input/MathML", "output/HTML-CSS"],
-			playerObject: "player"
-  		});
+      MathJax.Hub.Config({
+      	TeX: {imageFont: null, extensions: ["mhchem.js", "AMSsymbols.js", "AMSmath.js"]},
+      	extensions: ["tex2jax.js", "mml2jax.js", "forminput.js"],
+      	skipStartupTypeset: true,
+      	showProcessingMessages: false,
+      	jax: ["input/TeX", "input/MathML", "output/HTML-CSS"],
+      	playerObject: "player"
+      		});
     </script>
     <script type="text/javascript" src="javascript/MathJax/MathJax.js"></script>
-    <script type="text/javascript" src="javascript/tincan/tincan-min.js"></script>
+    <script
+      type="text/javascript"
+      src="javascript/tincan/tincan-min.js"
+    ></script>
     <script type="text/javascript" src="javascript/tincan/xapi.js"></script>
     <style>
-        .no-margin {
-            margin: 0;
-            padding: 0;
-        }
+      .no-margin {
+        margin: 0;
+        padding: 0;
+      }
 
-        .pull-left {
-            float: left;
-        }
+      .pull-left {
+        float: left;
+      }
 
-        .clear {
-            clear: both;
-        }
+      .clear {
+        clear: both;
+      }
     </style>
 
     <script language="javascript">
-        var player;
-        var start;
-        var xapi;
-        var semiResponsiveLayoutChooser;
-        var userAgent = window.navigator.userAgent;
-        var viewPort = document.querySelector("meta[name=viewport]");
-        var isAttemptSaved = false;
-        var passingScore = null;
+      var player;
+      var start;
+      var xapi;
+      var semiResponsiveLayoutChooser;
+      var userAgent = window.navigator.userAgent;
+      var viewPort = document.querySelector("meta[name=viewport]");
+      var isAttemptSaved = false;
+      var passingScore = null;
 
-        var tincanCfg = {
-            entry: "ab-initio",
-            lessonIRI: "6186207056363520",
-            lessonTitle: "3.2 Хемиски симболи и формули",
-            courseIRI: "https://www.mauthor.com/xapi/activity/6186207056363520",
-            lessonDescription: "",
-             url: window.location.href, 
-            actor: {
-                account: {
-                    homePage: "http://example.lms.com/",
-                    name: "Anonymous"
-                }
+      var tincanCfg = {
+        entry: "ab-initio",
+        lessonIRI: "6186207056363520",
+        lessonTitle: "3.2 Хемиски симболи и формули",
+        courseIRI: "https://www.mauthor.com/xapi/activity/6186207056363520",
+        lessonDescription: "",
+        url: window.location.href,
+        actor: {
+          account: {
+            homePage: "http://example.lms.com/",
+            name: "Anonymous",
+          },
+        },
+      };
+
+      function fromUtf8ToBase64(text) {
+        var parsedText = CryptoJS.enc.Utf8.parse(text);
+        return CryptoJS.enc.Base64.stringify(parsedText);
+      }
+
+      function fromBase64ToUtf16(base64EncodedString) {
+        var decodedBase64Text = CryptoJS.enc.Base64.parse(base64EncodedString);
+        return CryptoJS.enc.Utf8.stringify(decodedBase64Text);
+      }
+
+      function getOpener() {
+        var parent = null;
+        if (window.parent != null && window.parent.postMessage != null) {
+          parent = window.parent;
+        }
+        if (window.opener != null && window.opener.postMessage != null) {
+          parent = window.opener;
+        }
+        return parent;
+      }
+
+      function postResizeMessage(width, height) {
+        var parent = getOpener();
+
+        if (parent != null) {
+          var message = "RESIZE:" + width + ";" + height;
+          parent.postMessage(message, "*");
+        }
+      }
+
+      function postPageLoadedMessage() {
+        var parent = getOpener();
+
+        if (parent != null) {
+          var message = "PAGE_LOADED";
+          parent.postMessage(message, "*");
+        }
+      }
+
+      function chooseLayout(layoutChooser, screenConfiguration) {
+        var isMobile =
+          screenConfiguration.orientation !==
+          window.mAuthor.ScreenUtils.ORIENTATION_TYPES.NOT_MOBILE;
+        var isVertical =
+          screenConfiguration.orientation ===
+          window.mAuthor.ScreenUtils.ORIENTATION_TYPES.PORTRAIT;
+        var isHorizontal =
+          screenConfiguration.orientation ===
+          window.mAuthor.ScreenUtils.ORIENTATION_TYPES.LANDSCAPE;
+
+        return layoutChooser.chooseLayout(
+          screenConfiguration.width,
+          isMobile,
+          isVertical,
+          isHorizontal
+        );
+      }
+
+      function setViewPortSizesAfterScreenChanges() {
+        var $icPlayer = $("#_icplayer");
+        var width = parseInt($icPlayer.css("width"), 10);
+        viewPort.setAttribute("content", "width=" + width + ",maximum-scale=1");
+      }
+
+      function onResizeHandler() {
+        var screenSizes =
+          window.mAuthor.ScreenUtils.getScreenSizesDependingOnOrientation(
+            userAgent
+          );
+        var layoutID = chooseLayout(semiResponsiveLayoutChooser, screenSizes);
+        var changed = player.changeLayout(layoutID);
+        if (changed) {
+          setViewPortSizesAfterScreenChanges();
+        }
+      }
+
+      function receiveMessage(event) {
+        var WINDOW_WIDTH_EVENT = "WINDOW_WIDTH:";
+
+        if (!event.data) {
+          return;
+        }
+
+        if (event.data.indexOf(WINDOW_WIDTH_EVENT) === 0) {
+          if (semiResponsiveLayoutChooser) {
+            var screenConfiguration = JSON.parse(
+              event.data.substring(WINDOW_WIDTH_EVENT.length, event.data.length)
+            );
+            var layoutID = chooseLayout(
+              semiResponsiveLayoutChooser,
+              screenConfiguration
+            );
+            var changed = player.changeLayout(layoutID);
+          }
+        }
+      }
+
+      function iframeResizeRequest() {
+        if (window.parent != null && window.parent.postMessage != null) {
+          var $icPlayer = $("#_icplayer");
+          var width = parseInt($icPlayer.css("width"), 10);
+          var height = parseInt($icPlayer.css("height"), 10);
+          setViewPortSizesAfterScreenChanges();
+          postResizeMessage(width, height);
+        }
+      }
+
+      function checkAllReportablePagesVisited(presentation) {
+        var page = null;
+        var pagesCount = presentation.getPageCount();
+
+        for (var i = 0; i < pagesCount; i++) {
+          page = presentation.getPage(i);
+
+          if (page.isReportable() && !page.isVisited()) {
+            return false;
+          }
+        }
+
+        return true;
+      }
+
+      function icOnAppLoaded() {
+        player = icCreatePlayer("_icplayer");
+        // try {
+        //     cfg = xAPI.configFromParams(tincanCfg);
+        //     xapi = new xAPI(cfg);
+        // } catch (err) {
+        //     xapi = xAPI.getMockObject(err);
+        //     console.error('xAPI initialization returned the following error: ' + err +
+        //         'Please refer to /doc/page/Content-output for more details');
+        // }
+        // var location = "0";
+        // if (cfg.entry === "resume") {
+        //     xapi.resumeAttempt();
+        //     try {
+        //         var result = xapi.getAttemptState();
+        //         var state = result.state.contents;
+        //         player.setState(fromBase64ToUtf16(state.state_string));
+        //         location = state.location;
+        //     } catch (err) {
+        //         console.log("State not available for this attempt:" + err);
+        //     }
+        // } else {
+        //     xapi.initializeAttempt();
+        // }
+        window
+        debugger
+        player.load(
+          "https://config-qa.engage.comprodls.com/package/pages/main.xml",
+          parseInt(location)
+        );
+
+        var firstPageLoaded = false;
+        var previousPageNumber = 1; // it isn't 0 based, as page_number in paginated results begins from 1!
+        player.onPageLoaded(function onPageLoadedHandler() {
+          isAttemptSaved = false;
+
+          start = start || new Date().getTime();
+
+          if (!firstPageLoaded) {
+            semiResponsiveLayoutChooser =
+              new window.semiResponsive.LayoutChooser(
+                player.getSemiResponsiveLayouts()
+              );
+            passingScore = parseInt(
+              player
+                .getPlayerServices()
+                .getContentMetadataValue("passingScore"),
+              10
+            );
+            if (isNaN(passingScore)) {
+              passingScore = 0;
             }
+
+            var screenSizes =
+              window.mAuthor.ScreenUtils.getScreenSizesDependingOnOrientation(
+                userAgent
+              );
+
+            var layoutID = chooseLayout(
+              semiResponsiveLayoutChooser,
+              screenSizes
+            );
+            var changed = player.changeLayout(layoutID);
+
+            firstPageLoaded = true;
+            window.addEventListener("resize", onResizeHandler, false);
+          } else {
+            // do this only if this isn't first page
+            getAndSendXAPIPageScore(previousPageNumber);
+            previousPageNumber =
+              player.getPlayerServices().getCurrentPageIndex() + 1;
+          }
+          iframeResizeRequest();
+          postPageLoadedMessage();
+
+          var currentScore = 0;
+          var debounceTimeoutID = null;
+          var utils = new PlayerUtils(player);
+
+          // event bus handlers are cleared on each page change, so they should be set on each page load
+          var valueChangedHandler = {
+            onEventReceived: function () {
+              var currentPageIndex =
+                player.getPlayerServices().getCurrentPageIndex() + 1;
+              var presentation = utils.getPresentation();
+              var presentationScore = utils.getPresentationScore(presentation);
+              var newScoreValue = presentationScore.scaledScore;
+              var paginatedResult =
+                utils.getPresentationScore(presentation).paginatedResult;
+              var pageID = presentation.getPage(currentPageIndex - 1).getId(); // this player method operates on 0-based indexes of pages
+
+              function emptyCallback() {
+                console.debug("Page score saved!");
+              }
+
+              // if score changed send now
+              if (newScoreValue !== currentScore) {
+                findAndSendPageScore(
+                  paginatedResult,
+                  currentPageIndex,
+                  pageID,
+                  emptyCallback
+                );
+                window.clearTimeout(debounceTimeoutID);
+                debounceTimeoutID = null;
+                currentScore = newScoreValue;
+              } else {
+                // update 30 seconds after event came
+                if (debounceTimeoutID === null) {
+                  debounceTimeoutID = window.setTimeout(function () {
+                    findAndSendPageScore(
+                      paginatedResult,
+                      currentPageIndex,
+                      pageID,
+                      emptyCallback
+                    );
+                    debounceTimeoutID = null;
+                  }, 30000);
+                }
+              }
+            },
+          };
+          var playerEventBus = player.getPlayerServices().getEventBus();
+          playerEventBus.addEventListener("ValueChanged", valueChangedHandler);
+
+          $("#scrollableBody").css({
+            overflow: "",
+            height: "",
+          });
+
+          (function () {
+            var scrollDetectorInterval = null;
+            var retries = 0;
+
+            function scrollAddIfBodyBiggerThanWindow() {
+              var $window = $(window);
+              var $icplayerDiv = $("#_icplayer");
+              var $scrollableContent = $("#scrollableBody");
+
+              var windowHeight = $window.height();
+              var windowWidth = $window.width();
+
+              var bodyHeight = $icplayerDiv.height();
+              var bodyWidth = $icplayerDiv.width();
+
+              if (windowHeight < bodyHeight || windowWidth < bodyWidth) {
+                $scrollableContent.css("overflow", "auto");
+                $scrollableContent.height(windowHeight);
+              } else if (
+                windowHeight >= bodyHeight &&
+                windowWidth >= bodyWidth
+              ) {
+                $scrollableContent.css("height", "");
+                $scrollableContent.css("overflow", "");
+              } else if (windowHeight >= bodyHeight) {
+                $scrollableContent.css("height", "");
+              }
+
+              retries++;
+              if (retries > 5) {
+                window.clearInterval(scrollDetectorInterval);
+              }
+            }
+
+            $(document).ready(function () {
+              if (scrollDetectorInterval == null) {
+                scrollDetectorInterval = setInterval(
+                  scrollAddIfBodyBiggerThanWindow,
+                  1000
+                );
+              }
+            });
+          })();
+        });
+
+        player.onOutstretchHeight(function () {
+          iframeResizeRequest();
+        });
+
+        player.onPageScrollTo(function (top) {
+          var parent = getOpener();
+          if (parent) {
+            parent.postMessage("SCROLLTOP:" + top, "*");
+          }
+        });
+
+        window.addEventListener("message", receiveMessage, false);
+      }
+
+      function registerEventListeners() {
+        // event pagehide doesn't work properly in Chrome browser when the document is in iframe
+        if (
+          window.frameElement !== null &&
+          navigator.userAgent.indexOf("Chrome") > -1
+        ) {
+          window.addEventListener("beforeunload", doUnload, false);
+        } else if ("onpagehide" in window) {
+          window.addEventListener("pagehide", doUnload, false);
+          window.addEventListener("beforeunload", doUnload, false);
+        } else {
+          window.addEventListener("beforeunload", doUnload, false);
+        }
+      }
+
+      /* Function to create/initialize jsChannel */
+      function initChannel() {
+        return new Promise((resolve, reject) => {
+          channel = Channel.build({
+            window: window.parent,
+            origin: "*",
+            scope: "generic-default",
+            onReady: function () {
+              resolve(channel);
+            },
+          });
+        });
+      }
+
+      function DOMReady() {
+        channel.notify({
+          method: "sendMessageToContainer",
+          params: {
+            type: "ready",
+          },
+        });
+      }
+
+      function doStart() {
+        initChannel().then((initParams) => {
+          registerEventListeners();
+          DOMReady();
+        });
+      }
+
+      /**
+       * Gets correct pageResult from player
+       * @method getAndSendXAPIPageScore
+       * @param pageNumber {Number} - Page number, indexed from 1
+       */
+      function getAndSendXAPIPageScore(pageNumber) {
+        var utils = new PlayerUtils(player);
+        var presentation = utils.getPresentation();
+        var paginatedResults =
+          utils.getPresentationScore(presentation).paginatedResult;
+        var pageID = presentation.getPage(pageNumber - 1).getId(); // this player method operates on 0-based indexes of pages
+
+        var callback = undefined;
+
+        findAndSendPageScore(paginatedResults, pageNumber, pageID, callback);
+      }
+
+      function findAndSendPageScore(
+        paginatedResults,
+        pageNumber,
+        pageID,
+        callback
+      ) {
+        var pageResult = getPaginatedPageResult(paginatedResults, pageNumber);
+        sendXAPIPageScore(pageResult, pageID, callback);
+      }
+
+      function sendXAPIPageScore(pageResult, pageID, callback) {
+        /**
+         *  @method sendXAPIPageScore
+         *  @param {Object} pageResult Score object
+         *      @param {Number} pageResult.absolute_score
+         *      @param {Number} pageResult.checks_count
+         *      @param {Number} pageResult.errors_count
+         *      @param {Number} pageResult.max_score
+         *      @param {Number} pageResult.mistake_count
+         *      @param {Number} pageResult.page_name
+         *      @param {Number} pageResult.page_number
+         *      @param {Number} pageResult.score
+         *      @param {Number} pageResult.time
+         *  @param {number} pageID
+         *  @param {function | undefined} callback If passed then it will ba async request and will be called after sending the result
+         */
+        var scoreDefined = pageResult && pageID;
+        if (scoreDefined) {
+          var userHadInteraction =
+            pageResult.errors_count > 0 ||
+            pageResult.score > 0 ||
+            pageResult.mistake_count > 0;
+          if (userHadInteraction) {
+            xapi.sendPageResult(pageResult, pageID, callback);
+          } else {
+            console.debug("No interaction with page: " + pageID);
+          }
+        } else {
+          console.debug(
+            "Page result or pageID was falsy, page score wasn't sent."
+          );
+        }
+      }
+
+      /**
+       * Saves state, score and location of SCORM package on page leave.
+       */
+      function doUnload(ev) {
+        if (!doUnload.completedSend) {
+          //prevent from sending this  statement twice
+          sendLessonResult();
+
+          if (!isAttemptSaved) {
+            ev.preventDefault();
+            ev.returnValue = "";
+          }
+        }
+      }
+
+      function sendLessonResult() {
+        var end = new Date().getTime();
+
+        // This ensures that Player knows to update score before leaving page, event for score type FIRST.
+        if (player.hasOwnProperty("forceScoreUpdate")) {
+          player.forceScoreUpdate();
+        }
+
+        var ps = player.getPlayerServices();
+        var utils = new PlayerUtils(player);
+        var presentation = utils.getPresentation();
+        var score = utils.getPresentationScore(presentation);
+        var _rawscore = score.scaledScore * 100;
+        var rawscore = Math.round(_rawscore);
+
+        var attemptScore = {
+          max: 100,
+          min: 0,
+          raw: rawscore,
+          scaled: _rawscore / 100,
+          duration: TinCan.Utils.convertMillisecondsToISO8601Duration(
+            end - start
+          ),
         };
 
-        function fromUtf8ToBase64(text) {
-            var parsedText = CryptoJS.enc.Utf8.parse(text);
-            return CryptoJS.enc.Base64.stringify(parsedText);
-        }
+        var attemptState = {
+          state_string: fromUtf8ToBase64(player.getState()),
+          location: ps.getCurrentPageIndex(),
+        };
 
-        function fromBase64ToUtf16(base64EncodedString) {
-            var decodedBase64Text = CryptoJS.enc.Base64.parse(base64EncodedString);
-            return CryptoJS.enc.Utf8.stringify(decodedBase64Text);
-        }
+        var currentPageIndex =
+          player.getPlayerServices().getCurrentPageIndex() + 1;
+        var pageID = presentation.getPage(currentPageIndex - 1).getId();
+        var pageResult = getPaginatedPageResult(
+          score.paginatedResult,
+          currentPageIndex
+        );
+        var allPagesVisited = checkAllReportablePagesVisited(presentation);
+        var passed = passingScore <= rawscore;
+        sendXAPIPageScore(pageResult, pageID);
 
-        function getOpener() {
-            var parent = null;
-            if (window.parent != null && window.parent.postMessage != null) {
-                parent = window.parent;
-            }
-            if (window.opener != null && window.opener.postMessage != null) {
-                parent = window.opener;
-            }
-            return parent;
-        }
+        xapi.completeAttempt(
+          attemptScore,
+          attemptState,
+          allPagesVisited,
+          passed,
+          sendingCompleteAttemptFinished
+        );
+        doUnload.completedSend = true;
+      }
 
-        function postResizeMessage(width, height) {
-            var parent = getOpener();
+      function sendingCompleteAttemptFinished(err, xhr) {
+        isAttemptSaved = true;
+      }
 
-            if (parent != null) {
-                var message = "RESIZE:" + width + ";" + height;
-                parent.postMessage(message, '*');
-            }
-        }
-
-        function postPageLoadedMessage() {
-            var parent = getOpener();
-
-            if (parent != null) {
-                var message = "PAGE_LOADED";
-                parent.postMessage(message, '*');
-            }
-        }
-
-
-        function chooseLayout(layoutChooser, screenConfiguration) {
-            var isMobile = screenConfiguration.orientation !== window.mAuthor.ScreenUtils.ORIENTATION_TYPES.NOT_MOBILE;
-            var isVertical = screenConfiguration.orientation === window.mAuthor.ScreenUtils.ORIENTATION_TYPES.PORTRAIT;
-            var isHorizontal = screenConfiguration.orientation === window.mAuthor.ScreenUtils.ORIENTATION_TYPES.LANDSCAPE;
-
-            return layoutChooser.chooseLayout(screenConfiguration.width, isMobile, isVertical, isHorizontal);
-        }
-
-        function setViewPortSizesAfterScreenChanges() {
-            var $icPlayer = $('#_icplayer');
-            var width = parseInt($icPlayer.css('width'), 10);
-            viewPort.setAttribute('content', 'width=' + width + ',maximum-scale=1');
-        }
-
-        function onResizeHandler() {
-            var screenSizes = window.mAuthor.ScreenUtils.getScreenSizesDependingOnOrientation(userAgent);
-            var layoutID = chooseLayout(semiResponsiveLayoutChooser, screenSizes);
-            var changed = player.changeLayout(layoutID);
-            if (changed) {
-                setViewPortSizesAfterScreenChanges();
-            }
-        }
-
-        function receiveMessage(event) {
-            var WINDOW_WIDTH_EVENT = "WINDOW_WIDTH:";
-
-            if (!event.data) {
-                return;
-            }
-
-            if (event.data.indexOf(WINDOW_WIDTH_EVENT) === 0) {
-                if (semiResponsiveLayoutChooser) {
-                    var screenConfiguration = JSON.parse(event.data.substring(WINDOW_WIDTH_EVENT.length, event.data.length));
-                    var layoutID = chooseLayout(semiResponsiveLayoutChooser, screenConfiguration);
-                    var changed = player.changeLayout(layoutID);
-                }
-            }
-        }
-
-        function iframeResizeRequest() {
-            if (window.parent != null && window.parent.postMessage != null) {
-                var $icPlayer = $('#_icplayer');
-                var width = parseInt($icPlayer.css('width'), 10);
-                var height = parseInt($icPlayer.css('height'), 10);
-                setViewPortSizesAfterScreenChanges();
-                postResizeMessage(width, height);
-            }
-        }
-
-        function checkAllReportablePagesVisited(presentation) {
-            var page = null;
-            var pagesCount = presentation.getPageCount();
-
-            for (var i = 0; i < pagesCount; i++) {
-                page = presentation.getPage(i);
-
-                if (page.isReportable() && !page.isVisited()) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-
-        function icOnAppLoaded() {
-            player = icCreatePlayer('_icplayer');
-            try {
-                cfg = xAPI.configFromParams(tincanCfg);
-                xapi = new xAPI(cfg);
-            } catch (err) {
-                xapi = xAPI.getMockObject(err);
-                console.error('xAPI initialization returned the following error: ' + err +
-                    'Please refer to /doc/page/Content-output for more details');
-            }
-            var location = "0";
-            if (cfg.entry === "resume") {
-                xapi.resumeAttempt();
-                try {
-                    var result = xapi.getAttemptState();
-                    var state = result.state.contents;
-                    player.setState(fromBase64ToUtf16(state.state_string));
-                    location = state.location;
-                } catch (err) {
-                    console.log("State not available for this attempt:" + err);
-                }
-            } else {
-                xapi.initializeAttempt();
-            }
-            player.load('pages/main.xml', parseInt(location));
-
-            var firstPageLoaded = false;
-            var previousPageNumber = 1; // it isn't 0 based, as page_number in paginated results begins from 1!
-            player.onPageLoaded(function onPageLoadedHandler() {
-                
-                    isAttemptSaved = false;
-                
-                start = start || new Date().getTime();
-
-                if (!firstPageLoaded) {
-                    semiResponsiveLayoutChooser = new window.semiResponsive.LayoutChooser(player.getSemiResponsiveLayouts());
-                    passingScore = parseInt(player.getPlayerServices().getContentMetadataValue('passingScore'), 10);
-                    if (isNaN(passingScore)) {
-                        passingScore = 0;
-                    }
-
-                    var screenSizes = window.mAuthor.ScreenUtils.getScreenSizesDependingOnOrientation(userAgent);
-
-                    var layoutID = chooseLayout(semiResponsiveLayoutChooser, screenSizes);
-                    var changed = player.changeLayout(layoutID);
-
-                    firstPageLoaded = true;
-                    window.addEventListener("resize", onResizeHandler, false)
-                } else {
-                    // do this only if this isn't first page
-                    getAndSendXAPIPageScore(previousPageNumber);
-                    previousPageNumber = player.getPlayerServices().getCurrentPageIndex() + 1;
-                }
-                iframeResizeRequest();
-                postPageLoadedMessage();
-
-                var currentScore = 0;
-                var debounceTimeoutID = null;
-                var utils = new PlayerUtils(player);
-
-                // event bus handlers are cleared on each page change, so they should be set on each page load
-                var valueChangedHandler = {
-                    onEventReceived: function() {
-                        var currentPageIndex = player.getPlayerServices().getCurrentPageIndex() + 1;
-                        var presentation = utils.getPresentation();
-                        var presentationScore = utils.getPresentationScore(presentation);
-                        var newScoreValue = presentationScore.scaledScore;
-                        var paginatedResult = utils.getPresentationScore(presentation).paginatedResult;
-                        var pageID = presentation.getPage(currentPageIndex - 1).getId(); // this player method operates on 0-based indexes of pages
-
-                        function emptyCallback() { console.debug("Page score saved!"); }
-
-                        // if score changed send now
-                        if (newScoreValue !== currentScore) {
-                            findAndSendPageScore(paginatedResult, currentPageIndex, pageID, emptyCallback);
-                            window.clearTimeout(debounceTimeoutID);
-                            debounceTimeoutID = null;
-                            currentScore = newScoreValue;
-                        } else {
-                            // update 30 seconds after event came
-                            if (debounceTimeoutID === null) {
-                                debounceTimeoutID = window.setTimeout(function () {
-                                    findAndSendPageScore(paginatedResult, currentPageIndex, pageID, emptyCallback);
-                                    debounceTimeoutID = null;
-                                }, 30000);
-                            }
-                        }
-                    }
-                };
-                var playerEventBus = player.getPlayerServices().getEventBus();
-                playerEventBus.addEventListener('ValueChanged', valueChangedHandler);
-
-                $("#scrollableBody").css({
-                    "overflow": "",
-                    "height": ""
-                });
-
-                (function () {
-                    var scrollDetectorInterval = null;
-                    var retries = 0;
-
-                    function scrollAddIfBodyBiggerThanWindow() {
-                        var $window = $(window);
-                        var $icplayerDiv = $("#_icplayer");
-                        var $scrollableContent = $("#scrollableBody");
-
-                        var windowHeight = $window.height();
-                        var windowWidth = $window.width();
-
-                        var bodyHeight = $icplayerDiv.height();
-                        var bodyWidth = $icplayerDiv.width();
-
-                        if (windowHeight < bodyHeight || windowWidth < bodyWidth) {
-                            $scrollableContent.css("overflow", "auto");
-                            $scrollableContent.height(windowHeight);
-                        } else if (windowHeight >= bodyHeight && windowWidth >= bodyWidth) {
-                            $scrollableContent.css("height", "");
-                            $scrollableContent.css("overflow", "");
-                        } else if (windowHeight >= bodyHeight) {
-                            $scrollableContent.css("height", "");
-                        }
-
-                        retries++;
-                        if (retries > 5) {
-                            window.clearInterval(scrollDetectorInterval);
-                        }
-                    }
-
-                    $(document).ready(function () {
-                        if (scrollDetectorInterval == null) {
-                            scrollDetectorInterval = setInterval(scrollAddIfBodyBiggerThanWindow, 1000);
-                        }
-                    });
-                })();
-            });
-
-            player.onOutstretchHeight(function () {
-                iframeResizeRequest();
-            });
-
-            player.onPageScrollTo(function (top) {
-                var parent = getOpener();
-                if (parent) {
-                    parent.postMessage('SCROLLTOP:' + top, "*");
-                }
-            });
-
-
-            window.addEventListener("message", receiveMessage, false);
-        }
-
-        function registerEventListeners() {
-            // event pagehide doesn't work properly in Chrome browser when the document is in iframe
-            if (window.frameElement !== null && navigator.userAgent.indexOf("Chrome") > -1) {
-                window.addEventListener("beforeunload", doUnload, false);
-            } else if ("onpagehide" in window) {
-                window.addEventListener("pagehide", doUnload, false);
-                window.addEventListener("beforeunload", doUnload, false);
-            } else {
-                window.addEventListener("beforeunload", doUnload, false);
-            }
-        }
-
-        function doStart() {
-            registerEventListeners();
-        }
-
-        /**
-         * Gets correct pageResult from player
-         * @method getAndSendXAPIPageScore
-         * @param pageNumber {Number} - Page number, indexed from 1
-         */
-        function getAndSendXAPIPageScore(pageNumber) {
-            var utils = new PlayerUtils(player);
-            var presentation = utils.getPresentation();
-            var paginatedResults = utils.getPresentationScore(presentation).paginatedResult;
-            var pageID = presentation.getPage(pageNumber - 1).getId(); // this player method operates on 0-based indexes of pages
-
-            var callback = undefined;
-
-            findAndSendPageScore(paginatedResults, pageNumber, pageID, callback);
-        }
-
-        function findAndSendPageScore(paginatedResults, pageNumber, pageID, callback) {
-            var pageResult = getPaginatedPageResult(paginatedResults, pageNumber);
-            sendXAPIPageScore(pageResult, pageID, callback);
-        }
-
-        function sendXAPIPageScore(pageResult, pageID, callback) {
-            /**
-            *  @method sendXAPIPageScore
-            *  @param {Object} pageResult Score object
-            *      @param {Number} pageResult.absolute_score
-            *      @param {Number} pageResult.checks_count
-            *      @param {Number} pageResult.errors_count
-            *      @param {Number} pageResult.max_score
-            *      @param {Number} pageResult.mistake_count
-            *      @param {Number} pageResult.page_name
-            *      @param {Number} pageResult.page_number
-            *      @param {Number} pageResult.score
-            *      @param {Number} pageResult.time
-            *  @param {number} pageID
-            *  @param {function | undefined} callback If passed then it will ba async request and will be called after sending the result
-            */
-            var scoreDefined = pageResult && pageID;
-            if (scoreDefined) {
-                var userHadInteraction = pageResult.errors_count > 0 || pageResult.score > 0 || pageResult.mistake_count > 0;
-                if (userHadInteraction) {
-                    xapi.sendPageResult(pageResult, pageID, callback);
-                } else {
-                    console.debug("No interaction with page: " + pageID);
-                }
-            } else {
-                console.debug("Page result or pageID was falsy, page score wasn't sent.")
-            }
-        }
-
-        /**
-         * Saves state, score and location of SCORM package on page leave.
-         */
-        function doUnload(ev) {
-            if (!doUnload.completedSend) { //prevent from sending this  statement twice
-               sendLessonResult();
-
-                if (!isAttemptSaved) {
-                    ev.preventDefault();
-                    ev.returnValue = "";
-                }
-            }
-        }
-
-        function sendLessonResult() {
-            var end = new Date().getTime();
-
-            // This ensures that Player knows to update score before leaving page, event for score type FIRST.
-            if (player.hasOwnProperty('forceScoreUpdate')) {
-                player.forceScoreUpdate();
-            }
-
-            var ps = player.getPlayerServices();
-            var utils = new PlayerUtils(player);
-            var presentation = utils.getPresentation();
-            var score = utils.getPresentationScore(presentation);
-            var _rawscore = score.scaledScore * 100;
-            var rawscore = Math.round(_rawscore);
-
-
-            var attemptScore = {
-                max: 100,
-                min: 0,
-                raw: rawscore,
-                scaled: _rawscore / 100,
-                duration: TinCan.Utils.convertMillisecondsToISO8601Duration(end - start)
-            };
-
-            var attemptState = {
-                state_string: fromUtf8ToBase64(player.getState()),
-                location: ps.getCurrentPageIndex()
-            };
-
-            var currentPageIndex = player.getPlayerServices().getCurrentPageIndex() + 1;
-            var pageID = presentation.getPage(currentPageIndex - 1).getId();
-            var pageResult = getPaginatedPageResult(score.paginatedResult, currentPageIndex);
-            var allPagesVisited = checkAllReportablePagesVisited(presentation);
-            var passed = passingScore <= rawscore;
-            sendXAPIPageScore(pageResult, pageID);
-
-            xapi.completeAttempt(attemptScore, attemptState, allPagesVisited, passed, sendingCompleteAttemptFinished);
-            doUnload.completedSend = true;
-        }
-
-        function sendingCompleteAttemptFinished(err, xhr) {
-            isAttemptSaved = true;
-            
-
-        }
-
-        function getPaginatedPageResult(paginatedResults, pageNumber) {
-            // this will return undefined if filter won't find page with the number (for example, when it has "Reportable" set to false)
-            return paginatedResults.filter(function (pageResult) {
-                return pageResult.page_number === pageNumber;
-            })[0]
-        }
+      function getPaginatedPageResult(paginatedResults, pageNumber) {
+        // this will return undefined if filter won't find page with the number (for example, when it has "Reportable" set to false)
+        return paginatedResults.filter(function (pageResult) {
+          return pageResult.page_number === pageNumber;
+        })[0];
+      }
     </script>
-</head>
+  </head>
 
-<body class="no-margin" onload="doStart();">
-    
-
+  <body class="no-margin" onload="doStart();">
     <div id="scrollableBody">
-        <div id="_icplayer" class="no-margin pull-left"></div>
-        <div class="clear"></div>
+      <div id="_icplayer" class="no-margin pull-left"></div>
+      <div class="clear"></div>
     </div>
-</body>
-
-
-
-
+  </body>
 </html>
